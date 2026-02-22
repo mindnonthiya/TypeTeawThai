@@ -268,7 +268,7 @@ export default function QuizPage() {
               style={{
                 padding: "10px 22px",
                 borderRadius: "8px",
-                backgroundColor: "#993333",
+                backgroundColor: "#8C6A4A",
                 color: "white",
                 border: "none",
                 opacity: selected === null ? 0.5 : 1,

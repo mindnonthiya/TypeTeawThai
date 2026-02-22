@@ -118,13 +118,11 @@ export default function ResultsPage() {
     const node = shareRef.current
 
     const dataUrl = await htmlToImage.toPng(node, {
-      pixelRatio: 2,
+      pixelRatio: 1,
     })
 
     const link = document.createElement('a')
-    link.download = 'travel-result.png'
-    link.href = dataUrl
-    link.click()
+    window.open(dataUrl, '_blank')
   }
 
 
@@ -415,7 +413,7 @@ export default function ResultsPage() {
               padding: 12,
               borderRadius: 999,
               border: 'none',
-              background: '#2d2a26',
+              background: '#8C6A4A',
               color: '#fff',
               cursor: 'pointer',
             }}
@@ -481,8 +479,8 @@ export default function ResultsPage() {
                 <div
                   ref={shareRef}
                   style={{
-                    width: 1080,
-                    height: 1920,
+                    width: 720,
+                    height: 1280,
                     padding: 200,
                     background:
                       'linear-gradient(160deg, #f5efe6 0%, #e8dfd3 40%, #f9f6f2 100%)',
@@ -502,7 +500,7 @@ export default function ResultsPage() {
                       maxWidth: 760,
                     }}
                   >
-              
+
 
                     {profile && (
                       <div
