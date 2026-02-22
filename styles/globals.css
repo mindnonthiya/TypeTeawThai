@@ -24,6 +24,20 @@ a {
   text-decoration: none;
 }
 
+button,
+label {
+  color: inherit !important;
+  -webkit-text-fill-color: inherit !important;
+}
+
+button:focus,
+button:active,
+label:focus,
+label:active {
+  color: inherit !important;
+  -webkit-text-fill-color: inherit !important;
+  outline: none;
+}
 
 * {
   box-sizing: border-box;
