@@ -502,15 +502,7 @@ export default function ResultsPage() {
                       maxWidth: 760,
                     }}
                   >
-                    <div
-                      style={{
-                        fontSize: 28,
-                        letterSpacing: 5,
-                        opacity: 0.4,
-                      }}
-                    >
-                      TRAVEL PERSONALITY
-                    </div>
+              
 
                     {profile && (
                       <div
@@ -571,6 +563,18 @@ export default function ResultsPage() {
                         </div>
                       </div>
                     )}
+                    {/* 🔥 BRAND NAME ย้ายมาล่างสุด */}
+                    <div
+                      style={{
+                        fontSize: 28,
+                        letterSpacing: 5,
+                        opacity: 0.8,
+                        marginTop: 280,
+                      }}
+                    >
+
+                      TYPETEAWTHAI
+                    </div>
                   </div>
                 </div>
               </div>

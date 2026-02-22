@@ -200,7 +200,7 @@ export default function QuizPage() {
               src={imageSrc}
               alt="question"
               style={{
-                width: "280px",
+                width: "360px",
                 height: "280px",
                 objectFit: "contain",
                 display: "block",
