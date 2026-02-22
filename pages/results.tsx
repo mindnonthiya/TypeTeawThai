@@ -122,7 +122,9 @@ export default function ResultsPage() {
     })
 
     const link = document.createElement('a')
-    window.open(dataUrl, '_blank')
+    link.download = 'travel-result.png'
+    link.href = dataUrl
+    link.click()
   }
 
 
