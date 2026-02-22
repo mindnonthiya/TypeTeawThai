@@ -13,7 +13,7 @@ const Home: NextPageWithLayout = () => {
     if (!loading && !user) {
       router.replace("/login")
     }
-  }, [loading, user, router])
+  }, [user, loading, router])
 
   if (loading || !user) return null
 

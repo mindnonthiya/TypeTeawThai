@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLang } from '@/contexts/LanguageContext'
 import { supabase } from '@/utils/supabase/client'
+import * as htmlToImage from 'html-to-image'
 import {
   computeProfile,
   pickAttractions,
@@ -15,6 +16,7 @@ import {
 function buildStory(profile: Profile, lang: string) {
   const sorted = Object.entries(profile).sort((a, b) => b[1] - a[1])
   const top = sorted[0]?.[0]
+
 
   if (lang === 'th') {
     if (top === 'nature')
@@ -102,18 +104,38 @@ export default function ResultsPage() {
   const { user, loading: authLoading } = useAuth()
   const { lang } = useLang()
 
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [items, setItems] = useState<any[]>([])
+  const [shareOpen, setShareOpen] = useState(false)
 
   const hasInserted = useRef(false)
+  const shareRef = useRef<HTMLDivElement>(null)
+
+  async function downloadImage() {
+    if (!shareRef.current) return
+
+    const node = shareRef.current
+
+    const dataUrl = await htmlToImage.toPng(node, {
+      pixelRatio: 2,
+    })
+
+    const link = document.createElement('a')
+    link.download = 'travel-result.png'
+    link.href = dataUrl
+    link.click()
+  }
+
 
   const payload = useMemo(() => {
     if (!router.isReady) return null
     const { regionId, selected, answers } = router.query
-    if (!regionId || !selected || !answers) return null
+
+    if (!selected || !answers) return null
+
     return {
-      regionId: Number(regionId),
+      regionId: regionId ? Number(regionId) : null, // 👈 แก้ตรงนี้
       selectedOptionIds: JSON.parse(selected as string),
       answers: JSON.parse(answers as string),
     }
@@ -124,93 +146,149 @@ export default function ResultsPage() {
   }, [payload])
 
   useEffect(() => {
-    if (!authLoading && !user) router.replace('/')
-  }, [authLoading, user])
+    if (!router.isReady) return
+    if (!authLoading && !user) {
+      router.replace('/login')
+    }
+  }, [authLoading, user, router.isReady])
 
   useEffect(() => {
     async function run() {
       if (!payload || !user) return
 
-      const { data: oData } = await supabase
-        .from('quiz_options')
-        .select('*')
-        .in('id', payload.selectedOptionIds)
+      setLoading(true)   // ✅ เริ่มโหลดตรงนี้
 
-      const prof = computeProfile(
-        (oData || []).map((o: any) => ({
-          nature: o.nature_score || 0,
-          cafe: o.cafe_score || 0,
-          adventure: o.adventure_score || 0,
-          culture: o.culture_score || 0,
-          sea: o.sea_score || 0,
-        }))
-      )
+      try {
+        const { data: oData, error: oErr } = await supabase
+          .from('quiz_options')
+          .select('*')
+          .in('id', payload.selectedOptionIds)
 
-      setProfile(prof)
+        if (oErr) throw oErr
 
-      const { data: pData } = await supabase
-        .from('provinces')
-        .select('*')
-        .eq('region_id', payload.regionId)
+        const prof = computeProfile(
+          (oData || []).map((o: any) => ({
+            nature: o.nature_score || 0,
+            cafe: o.cafe_score || 0,
+            adventure: o.adventure_score || 0,
+            culture: o.culture_score || 0,
+            sea: o.sea_score || 0,
+          }))
+        )
 
-      const rankedAll = (pData || [])
-        .map((p: any) => ({
-          ...p,
-          matchScore: provinceMatchScore(prof, p),
-        }))
-        .sort((a: any, b: any) => b.matchScore - a.matchScore)
+        setProfile(prof)
 
-      const topScore = rankedAll[0]?.matchScore || 0
-      const ranked = rankedAll
-        .filter((p: any) => p.matchScore >= topScore * 0.85)
-        .slice(0, 3)
+        let provinceQuery = supabase.from('provinces').select('*')
 
-      const provinceIds = ranked.map((p: any) => p.id)
+        if (payload.regionId) {
+          provinceQuery = provinceQuery.eq('region_id', payload.regionId)
+        }
 
-      const { data: allAttractions } = await supabase
-        .from('province_attractions')
-        .select('*')
-        .in('province_id', provinceIds)
+        const { data: pData, error: pErr } = await provinceQuery
 
-      const out = ranked.map((prov: any) => ({
-        province: prov,
-        locations: pickAttractions(
-          prof,
-          (allAttractions || []).filter(
-            (a: any) => a.province_id === prov.id
+        if (pErr) throw pErr
+
+        const rankedAll = (pData || [])
+          .map((p: any) => ({
+            ...p,
+            matchScore: provinceMatchScore(prof, p),
+          }))
+          .sort((a, b) => {
+            const diff = b.matchScore - a.matchScore
+            if (diff !== 0) return diff
+
+            // แทนที่ random ด้วย id
+            return a.id - b.id
+          })
+
+        const topScore = rankedAll[0]?.matchScore || 0
+        const ranked = rankedAll.slice(0, 3)
+
+        const provinceIds = ranked.map((p: any) => p.id)
+
+        const { data: allAttractions, error: aErr } = await supabase
+          .from('province_attractions')
+          .select('*')
+          .in('province_id', provinceIds)
+
+        if (aErr) throw aErr
+
+        const out = ranked.map((prov: any) => ({
+          province: prov,
+          locations: pickAttractions(
+            prof,
+            (allAttractions || []).filter(
+              (a: any) => a.province_id === prov.id
+            ),
+            3
           ),
-          3
-        ),
-      }))
+        }))
 
-      setItems(out)
-      setLoading(false)
+        setItems(out)
 
-      if (hasInserted.current) return
-      hasInserted.current = true
+        // 🔥 INSERT ต้องอยู่ตรงนี้
+        if (!hasInserted.current) {
+          hasInserted.current = true
 
-      await supabase.from('quiz_results').insert({
-        user_id: user.id,
-        recommended_provinces: ranked,
-      })
+          await supabase.from('quiz_results').insert({
+            user_id: user.id,
+            recommended_provinces: ranked.map((p: any) => ({
+              id: p.id,
+              name_th: p.name_th,
+              name_en: p.name_en,
+            })),
+            recommended_locations: out.flatMap((it: any) =>
+              it.locations.map((loc: any) => ({
+                id: loc.id,
+                name_th: loc.name_th,
+                name_en: loc.name_en,
+                description: loc.description,
+              }))
+            ),
+          })
+        }
+
+      } catch (err) {
+        console.error(err)
+
+
+      } finally {
+        setLoading(false)  // ✅ ปิด loading เสมอ
+      }
     }
 
     if (user && payload) run()
   }, [user, payload])
 
-  if (authLoading || loading)
-    return <p style={{ textAlign: 'center', marginTop: 120 }}>Loading...</p>
+  if (authLoading)
+    return <p style={{ textAlign: 'center', marginTop: 120 }}>Checking login...</p>
+
+  if (loading)
+    return <p style={{ textAlign: 'center', marginTop: 120 }}>Preparing your result...</p>
+
   if (!user) return null
+
+  // ✅ ใส่ตรงนี้
+  if (!payload) {
+    return (
+      <p style={{ textAlign: 'center', marginTop: 120 }}>
+        {lang === 'th'
+          ? 'ไม่พบข้อมูลผลลัพธ์ กรุณาทำแบบทดสอบใหม่'
+          : 'Result not found. Please retake the quiz.'}
+      </p>
+    )
+  }
 
   const topProvince = items[0]?.province
 
   return (
     <div style={{ background: '#f6f3ee', minHeight: '100vh', padding: '70px 20px' }}>
+
       <div style={{ maxWidth: 620, margin: '0 auto' }}>
         <h1 style={{ fontSize: 24, fontWeight: 500, marginBottom: 36 }}>
           {lang === 'th'
             ? 'จุดหมายที่ใช่สำหรับคุณ'
-            : 'This is your perfect destination'}
+            : 'your perfect destination'}
         </h1>
 
         {profile && (
@@ -275,74 +353,65 @@ export default function ResultsPage() {
             )}
           </>
         )}
+      </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
-          {items.map((it, idx) => (
-            <div
-              key={it.province.id}
-              style={{
-                background: '#fff',
-                padding: 22,
-                borderRadius: 16,
-                border: '1px solid #ebe7df',
-              }}
-            >
-              <h2 style={{ fontSize: 18, marginBottom: 14, fontWeight: 600 }}>
-                {idx + 1}.{' '}
-                {lang === 'th'
-                  ? it.province.name_th
-                  : it.province.name_en}
-              </h2>
-
-              {it.locations.map((loc: any) => (
-                <div key={loc.id} style={{ marginBottom: 12 }}>
-                  <div style={{ fontWeight: 500 }}>
-                    {lang === 'th'
-                      ? loc.name_th
-                      : loc.name_en}
-                  </div>
-                  <div style={{ opacity: 0.6, fontSize: 13 }}>
-                    {loc.description ||
-                      (lang === 'th'
-                        ? 'สถานที่ที่ควรค่าแก่การไปสัมผัสด้วยตัวเอง'
-                        : 'A place worth experiencing.')}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-
-        <div style={{ display: 'flex', gap: 12, marginTop: 40, flexWrap: 'wrap' }}>
-          <button
-            onClick={() => router.push('/')}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+        {items.map((it, idx) => (
+          <div
+            key={it.province.id}
             style={{
-              flex: '1 1 180px',
-              padding: 12,
-              borderRadius: 999,
-              border: '1px solid #222',
-              background: 'transparent',
-              cursor: 'pointer',
+              background: '#fff',
+              padding: 22,
+              borderRadius: 16,
+              border: '1px solid #ebe7df',
             }}
           >
-            {lang === 'th' ? 'ทำแบบทดสอบใหม่' : 'Retake Quiz'}
-          </button>
+            <h2 style={{ fontSize: 18, marginBottom: 14, fontWeight: 600 }}>
+              {idx + 1}.{' '}
+              {lang === 'th'
+                ? it.province.name_th
+                : it.province.name_en}
+            </h2>
 
+            {it.locations.map((loc: any) => (
+              <div key={loc.id} style={{ marginBottom: 12 }}>
+                <div style={{ fontWeight: 500 }}>
+                  {lang === 'th'
+                    ? loc.name_th
+                    : loc.name_en}
+                </div>
+                <div style={{ opacity: 0.6, fontSize: 13 }}>
+                  {loc.description ||
+                    (lang === 'th'
+                      ? 'สถานที่ที่ควรค่าแก่การไปสัมผัสด้วยตัวเอง'
+                      : 'A place worth experiencing.')}
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: 12, marginTop: 40, flexWrap: 'wrap' }}>
+        <button
+          onClick={() => router.push('/')}
+          style={{
+            flex: '1 1 180px',
+            padding: 12,
+            borderRadius: 999,
+            border: '1px solid #222',
+            background: 'transparent',
+            cursor: 'pointer',
+          }}
+        >
+          {lang === 'th' ? 'ทำแบบทดสอบใหม่' : 'Retake Quiz'}
+        </button>
+
+        <div style={{ position: 'relative', flex: '1 1 180px' }}>
           <button
-            onClick={async () => {
-              const url = window.location.href
-              if (navigator.share) {
-                await navigator.share({
-                  title: 'My Travel Result',
-                  url,
-                })
-              } else {
-                await navigator.clipboard.writeText(url)
-                alert(lang === 'th' ? 'คัดลอกลิงก์แล้ว' : 'Link copied')
-              }
-            }}
+            onClick={() => setShareOpen(!shareOpen)}
             style={{
-              flex: '1 1 180px',
+              width: '100%',
               padding: 12,
               borderRadius: 999,
               border: 'none',
@@ -353,6 +422,160 @@ export default function ResultsPage() {
           >
             {lang === 'th' ? 'แชร์ผลลัพธ์' : 'Share Result'}
           </button>
+
+          {shareOpen && (
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '110%',
+                left: 0,
+                right: 0,
+                background: '#fff',
+                borderRadius: 14,
+                boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+                padding: 10,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+                zIndex: 20,
+              }}
+            >
+              <button
+                onClick={async () => {
+                  await navigator.clipboard.writeText(window.location.href)
+                  setShareOpen(false)
+                  alert(lang === 'th' ? 'คัดลอกลิงก์แล้ว' : 'Link copied')
+                }}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  padding: 10,
+                  cursor: 'pointer',
+                }}
+              >
+                {lang === 'th' ? 'คัดลอกลิงก์' : 'Copy link'}
+              </button>
+
+              <button
+                onClick={async () => {
+                  await downloadImage()
+                  setShareOpen(false)
+                }}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  padding: 10,
+                  cursor: 'pointer',
+                }}
+              >
+                {lang === 'th' ? 'บันทึกเป็นรูป' : 'Download image'}
+              </button>
+              {/* 🔥 HIDDEN SHARE CARD (for export only) */}
+              <div
+                style={{
+                  position: 'fixed',
+                  top: -9999,
+                  left: -9999,
+                }}
+              >
+                <div
+                  ref={shareRef}
+                  style={{
+                    width: 1080,
+                    height: 1920,
+                    padding: 200,
+                    background:
+                      'linear-gradient(160deg, #f5efe6 0%, #e8dfd3 40%, #f9f6f2 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontFamily: 'serif',
+                    color: '#2d2a26',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 60,
+                      textAlign: 'center',
+                      maxWidth: 760,
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 28,
+                        letterSpacing: 5,
+                        opacity: 0.4,
+                      }}
+                    >
+                      TRAVEL PERSONALITY
+                    </div>
+
+                    {profile && (
+                      <div
+                        style={{
+                          whiteSpace: 'pre-line',
+                          fontSize: 48,
+                          lineHeight: 1.65,
+                          fontWeight: 400,
+                        }}
+                      >
+                        {buildStory(profile, lang)}
+                      </div>
+                    )}
+
+                    {topProvince && (
+                      <div
+                        style={{
+                          marginTop: 20,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 22,
+                          alignItems: 'center',
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: 30,
+                            opacity: 0.6,
+                            letterSpacing: 1,
+                          }}
+                        >
+                          {lang === 'th'
+                            ? 'จังหวัดที่เหมาะกับคุณที่สุดคือ'
+                            : 'The province that fits you best is'}
+                        </div>
+
+                        <div
+                          style={{
+                            fontSize: 96,
+                            fontWeight: 600,
+                            lineHeight: 1.15,
+                          }}
+                        >
+                          {lang === 'th'
+                            ? topProvince.name_th
+                            : topProvince.name_en}
+                        </div>
+
+                        <div
+                          style={{
+                            fontSize: 22,
+                            opacity: 0.45,
+                            letterSpacing: 2,
+                            marginTop: 6,
+                          }}
+                        >
+                          {lang === 'th' ? 'BEST MATCH' : 'BEST MATCH'}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

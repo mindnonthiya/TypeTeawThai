@@ -17,7 +17,7 @@ export type ProvinceScores = {
 };
 
 export function computeProfile(optionScores: OptionScore[]): Profile {
-  return optionScores.reduce<Profile>(
+  const base = optionScores.reduce<Profile>(
     (acc, o) => {
       acc.nature += o.nature || 0;
       acc.cafe += o.cafe || 0;
@@ -28,15 +28,49 @@ export function computeProfile(optionScores: OptionScore[]): Profile {
     },
     { nature: 0, cafe: 0, adventure: 0, culture: 0, sea: 0 }
   );
+
+  const total =
+    base.nature +
+    base.cafe +
+    base.adventure +
+    base.culture +
+    base.sea;
+
+  if (total === 0) return base;
+
+  return {
+    nature: base.nature / total,
+    cafe: base.cafe / total,
+    adventure: base.adventure / total,
+    culture: base.culture / total,
+    sea: base.sea / total,
+  };
 }
 
 export function provinceMatchScore(profile: Profile, p: ProvinceScores): number {
+  const provinceTotal =
+    (p.nature_score || 0) +
+    (p.cafe_score || 0) +
+    (p.adventure_score || 0) +
+    (p.culture_score || 0) +
+    (p.sea_score || 0);
+
+  if (provinceTotal === 0) return 0;
+
+  const normalizedProvince = {
+    nature: (p.nature_score || 0) / provinceTotal,
+    cafe: (p.cafe_score || 0) / provinceTotal,
+    adventure: (p.adventure_score || 0) / provinceTotal,
+    culture: (p.culture_score || 0) / provinceTotal,
+    sea: (p.sea_score || 0) / provinceTotal,
+  };
+
   return (
-    (p.nature_score || 0) * profile.nature +
-    (p.cafe_score || 0) * profile.cafe +
-    (p.adventure_score || 0) * profile.adventure +
-    (p.culture_score || 0) * profile.culture +
-    (p.sea_score || 0) * profile.sea
+    normalizedProvince.nature * profile.nature +
+    normalizedProvince.cafe * profile.cafe +
+    normalizedProvince.adventure * profile.adventure +
+    normalizedProvince.culture * profile.culture +
+    normalizedProvince.sea * profile.sea
   );
 }
 
@@ -59,9 +93,13 @@ export function pickAttractions(profile: Profile, all: Attraction[], limit = 3):
   const scoreOne = (a: Attraction) => {
     const cats = (a.categories || []).map((s) => String(s).toLowerCase());
     let s = 0;
+
     for (const t of traits.slice(0, 3)) {
-      if (cats.includes(String(t))) s += 10;
+      if (cats.includes(String(t))) {
+        s += profile[t]; // ใช้น้ำหนักจริง
+      }
     }
+
     return s;
   };
   return [...all].sort((a, b) => scoreOne(b) - scoreOne(a)).slice(0, limit);

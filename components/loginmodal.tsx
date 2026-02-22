@@ -18,7 +18,8 @@ export default function LoginModal({ onClose }: Props) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleSubmit() {
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
     setBusy(true)
     setError(null)
 
@@ -29,7 +30,7 @@ export default function LoginModal({ onClose }: Props) {
         await signUp(email, password)
       }
 
-      onClose()   // ❗ แค่นี้พอ
+      router.push("/") // redirect ที่เดียว
     } catch (e: any) {
       setError(e?.message || "Something went wrong")
     } finally {
@@ -39,11 +40,16 @@ export default function LoginModal({ onClose }: Props) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div
+      <form
         className="modal-card"
         onClick={(e) => e.stopPropagation()}
+        onSubmit={handleSubmit}
       >
-        <button className="modal-close" onClick={onClose}>
+        <button
+          type="button"
+          className="modal-close"
+          onClick={onClose}
+        >
           ✕
         </button>
 
@@ -65,9 +71,10 @@ export default function LoginModal({ onClose }: Props) {
 
         <label>{lang === "th" ? "อีเมล" : "Email"}</label>
         <input
-          type="text"
+          type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
         />
 
         <label>{lang === "th" ? "รหัสผ่าน" : "Password"}</label>
@@ -75,14 +82,15 @@ export default function LoginModal({ onClose }: Props) {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
 
         {error && <p className="error">{error}</p>}
 
         <button
+          type="submit"
           className="main-btn"
-          onClick={handleSubmit}
-          disabled={busy || !email || !password}
+          disabled={busy}
         >
           {busy
             ? "..."
@@ -105,119 +113,104 @@ export default function LoginModal({ onClose }: Props) {
               : lang === "th" ? "เข้าสู่ระบบ" : "Login"}
           </span>
         </p>
-      </div>
+      </form>
 
       <style jsx>{`
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(3px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 99999;
-    padding: 16px; /* 👈 กันติดขอบจอมือถือ */
-  }
+        .modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.55);
+          backdrop-filter: blur(3px);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 99999;
+          padding: 16px;
+        }
 
-  .modal-card {
-    background: #efe5d8;
-    padding: 28px 22px;
-    border-radius: 20px;
-    width: 100%;
-    max-width: 360px;   /* 👈 เล็กลงชัด */
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-    animation: fadeIn 0.25s ease;
-  }
+        .modal-card {
+          background: #efe5d8;
+          padding: 28px 22px;
+          border-radius: 20px;
+          width: 100%;
+          max-width: 360px;
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        }
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+        .modal-close {
+          position: absolute;
+          top: 10px;
+          right: 14px;
+          border: none;
+          background: none;
+          font-size: 18px;
+          cursor: pointer;
+          opacity: 0.7;
+        }
 
-  .modal-close {
-    position: absolute;
-    top: 10px;
-    right: 14px;
-    border: none;
-    background: none;
-    font-size: 18px;
-    cursor: pointer;
-    opacity: 0.7;
-  }
+        .card-title {
+          font-size: 22px;
+          font-weight: 700;
+          text-align: center;
+        }
 
-  .card-title {
-    font-size: 22px;
-    font-weight: 700;
-    text-align: center;
-  }
+        .subtitle {
+          text-align: center;
+          font-size: 12px;
+          color: #666;
+          margin-bottom: 6px;
+        }
 
-  .subtitle {
-    text-align: center;
-    font-size: 12px;
-    color: #666;
-    margin-bottom: 6px;
-  }
+        label {
+          font-size: 12px;
+          font-weight: 600;
+        }
 
-  label {
-    font-size: 12px;
-    font-weight: 600;
-  }
+        input {
+          padding: 11px;
+          border-radius: 10px;
+          border: none;
+          background: #d7dee7;
+          font-size: 13px;
+        }
 
-  input {
-    padding: 11px;
-    border-radius: 10px;
-    border: none;
-    background: #d7dee7;
-    font-size: 13px;
-  }
+        .main-btn {
+          margin-top: 10px;
+          padding: 12px;
+          border-radius: 12px;
+          border: none;
+          background: #111;
+          color: white;
+          font-weight: 600;
+          font-size: 13px;
+          cursor: pointer;
+        }
 
-  .main-btn {
-    margin-top: 10px;
-    padding: 12px;
-    border-radius: 12px;
-    border: none;
-    background: #111;
-    color: white;
-    font-weight: 600;
-    font-size: 13px;
-    cursor: pointer;
-  }
+        .main-btn:disabled {
+          opacity: 0.6;
+        }
 
-  .main-btn:disabled {
-    opacity: 0.6;
-  }
+        .switch {
+          text-align: center;
+          font-size: 12px;
+          margin-top: 8px;
+        }
 
-  .switch {
-    text-align: center;
-    font-size: 12px;
-    margin-top: 8px;
-  }
+        .switch span {
+          color: #a45c2f;
+          font-weight: 600;
+          cursor: pointer;
+        }
 
-  .switch span {
-    color: #a45c2f;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .error {
-    color: #c0392b;
-    font-size: 11px;
-  }
-
-  /* 📱 มือถือ */
-  @media (max-width: 480px) {
-    .modal-card {
-      max-width: 320px;
-      padding: 24px 18px;
-      border-radius: 18px;
-    }
-  }
-`}</style>
+        .error {
+          color: #c0392b;
+          font-size: 11px;
+        }
+      `}</style>
     </div>
   )
 }

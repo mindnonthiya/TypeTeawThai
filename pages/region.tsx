@@ -20,12 +20,6 @@ export default function SelectRegion() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace("/login")
-    }
-  }, [authLoading, user, router])
-
-  useEffect(() => {
     async function loadRegions() {
       try {
         const { data, error } = await supabase
@@ -53,12 +47,11 @@ export default function SelectRegion() {
   }
 
   if (authLoading || loading) return null
-  if (!user) return null
-
+  
   return (
     <>
       <div className="wrapper">
-        <div className="card">
+        <div className="content">
 
           <p className="subtitle">
             {lang === "th" ? "เริ่มต้นการเดินทาง" : "Begin your journey"}
@@ -66,24 +59,59 @@ export default function SelectRegion() {
 
           <h1 className="title">
             {lang === "th"
-              ? "เลือกภูมิภาคที่คุณสนใจ"
-              : "Select a region that interests you"}
+              ? "ค้นหาจังหวัดที่เหมาะกับตัวคุณ"
+              : "Discover the province that matches you"}
           </h1>
+
+          <p className="story">
+            {lang === "th"
+              ? "เลือกภูมิภาคที่คุณสนใจ หรือทำแบบทดสอบทั้งหมดเพื่อค้นหาจังหวัดที่เข้ากับคุณมากที่สุด"
+              : "Choose a region you’re interested in, or take the full quiz to discover your best match."}
+          </p>
 
           {error && <div className="error">{error}</div>}
 
-          <div className="regionList">
-            {regions.map((region) => (
-              <button
-                key={region.id}
-                onClick={() => selectRegion(region.id)}
-                className="regionButton"
-              >
-                {lang === "th"
-                  ? region.name_th || "-"
-                  : region.name_en || "-"}
-              </button>
-            ))}
+          {/* SECTION 1 */}
+          <div className="section">
+            <h2 className="sectionTitle">
+              {lang === "th" ? "เลือกภูมิภาค" : "Choose a region"}
+            </h2>
+
+            <div className="regionList">
+              {regions.map((region) => (
+                <button
+                  key={region.id}
+                  onClick={() => selectRegion(region.id)}
+                  className="outlineButton"
+                >
+                  {lang === "th"
+                    ? region.name_th || "-"
+                    : region.name_en || "-"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="divider">
+            <span>{lang === "th" ? "หรือ" : "OR"}</span>
+          </div>
+
+          {/* SECTION 2 */}
+          <div className="section">
+            <h2 className="sectionTitle">
+              {lang === "th"
+                ? "ทำแบบทดสอบโดยไม่เลือกภูมิภาค"
+                : "Start without selecting a region"}
+            </h2>
+
+            <button
+              onClick={() => router.push("/quiz")}
+              className="outlineButton"
+            >
+              {lang === "th"
+                ? "เริ่มทำแบบทดสอบ"
+                : "Start quiz"}
+            </button>
           </div>
 
         </div>
@@ -92,70 +120,99 @@ export default function SelectRegion() {
       <style jsx>{`
         .wrapper {
           min-height: 100vh;
-          background: linear-gradient(to bottom, #F6F1E8, #EFE6DA);
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 24px;
+          background: #F6F1E8;
+          padding: 80px 24px;
         }
 
-        .card {
+        .content {
+          max-width: 560px;
           width: 100%;
-          max-width: 520px;
-          background: white;
-          padding: 48px 36px;
-          border-radius: 20px;
-          box-shadow: 0 15px 40px rgba(0,0,0,0.08);
           text-align: center;
         }
 
         .subtitle {
-          font-size: 12px;
-          letter-spacing: 3px;
+          font-size: 11px;
+          letter-spacing: 4px;
           text-transform: uppercase;
-          color: #8C6A4A;
-          margin-bottom: 12px;
+          opacity: 0.5;
+          margin-bottom: 18px;
         }
 
         .title {
           font-size: 22px;
-          font-weight: 500;
-          color: #5C4033;
-          margin-bottom: 32px;
+          font-weight: 400;
+          line-height: 1.6;
+          margin-bottom: 6px;
         }
 
-        .error {
-          color: #c0392b;
-          font-size: 14px;
-          margin-bottom: 16px;
+        .story {
+          font-size: 15px;
+          line-height: 1.9;
+          opacity: 0.75;
+          margin-bottom: 50px;
+        }
+
+        .sectionTitle {
+          font-size: 12px;
+          letter-spacing: 3px;
+          text-transform: uppercase;
+          opacity: 0.5;
+          margin-bottom: 24px;
         }
 
         .regionList {
           display: flex;
           flex-direction: column;
-          gap: 14px;
+          align-items: center;
+          gap: 8px;
         }
 
-        .regionButton {
-          padding: 14px;
-          border-radius: 12px;
-          border: none;
-          background: #E8D8C3;
+        .outlineButton {
+          width: 260px;        /* ความยาวเท่ากันทุกปุ่ม */
+          border: 1px solid rgba(0,0,0,0.25);
+          background: transparent;
+          padding: 12px 8px;
+          border-radius: 28px; /* วงรีแบบนุ่ม ๆ */
           font-size: 15px;
-          color: #5C4033;
           cursor: pointer;
           transition: all 0.25s ease;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
-        .regionButton:hover {
-          transform: translateY(-3px);
-          background: #DCC5AB;
-          box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        .outlineButton:hover {
+          border-color: black;
+          transform: translateY(-2px);
+          background: rgba(0,0,0,0.03);
         }
 
-        .regionButton:active {
-          transform: translateY(0);
+        .divider {
+          display: flex;
+          align-items: center;
+          text-align: center;
+          margin: 40px 0;
+          font-size: 12px;
+          letter-spacing: 3px;
+          opacity: 0.6;
+        }
+
+        .divider::before,
+        .divider::after {
+          content: "";
+          flex: 1;
+          height: 1px;
+          background: rgba(0,0,0,0.15);
+        }
+
+        .divider span {
+          padding: 0 15px;
+        }
+
+        .error {
+          font-size: 13px;
+          margin-bottom: 20px;
+          color: #b44;
         }
       `}</style>
     </>

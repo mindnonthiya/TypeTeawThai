@@ -21,6 +21,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <header className="header">
+        <link
+          href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&display=swap"
+          rel="stylesheet"
+        />
         <div className="inner">
 
           <Link href="/" className="brand">
@@ -39,9 +43,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {user ? (
               <>
                 <span className="email">{user.email}</span>
-                <button onClick={onLogout} className="primaryBtn">
-                  {t("logout")}
-                </button>
+
               </>
             ) : (
               <button
@@ -59,6 +61,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="mobileIcons">
+
             <div className="langSwitch" onClick={toggle}>
               <span className={lang === "th" ? "active" : ""}>TH</span>
               <span className={lang === "en" ? "active" : ""}>EN</span>
@@ -70,6 +73,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             >
               ☰
             </button>
+
+            {user && (
+              <button
+                onClick={onLogout}
+                className="iconBtn"
+                title="Logout"
+              >
+                <img src="/images/exit.png" alt="logout" className="iconImg" />
+              </button>
+            )}
+
           </div>
         </div>
 
@@ -82,12 +96,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             )}
 
             {user ? (
-              <>
-                <span className="email">{user.email}</span>
-                <button onClick={onLogout} className="primaryBtn small">
-                  {t("logout")}
-                </button>
-              </>
+              <span className="email">{user.email}</span>
             ) : (
               <button
                 onClick={() => {
@@ -117,6 +126,27 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           padding: 14px 20px;
         }
 
+        .iconBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.iconImg {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  transition: all 0.2s ease;
+}
+
+.iconImg:hover {
+  transform: scale(1.1);
+  opacity: 0.8;
+}
+
         .inner {
           max-width: 1100px;
           margin: 0 auto;
@@ -126,15 +156,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         }
 
         .brand {
-          font-size: 38px !important;
-          font-weight: 500;
-          letter-spacing: 0.5px;
-          text-decoration: none;
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          line-height: 1;
-        }
+  font-size: 44px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1;
+  font-family: "Playfair Display", serif;
+}
 
         .brand .dark { color: #2F2F2F; }
         .brand .gold { color: #B07A3A; }
@@ -146,10 +177,36 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         }
 
         .navLink {
-          text-decoration: none;
-          color: #5C3A21;
-          font-size: 14px;
-        }
+  text-decoration: none;
+  color: #5C3A21;
+  font-size: 14px;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.navLink::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: 0%;
+  height: 1px;
+  background: #7B4B2A;
+  transition: width 0.25s ease;
+}
+
+.navLink:hover {
+  color: #7B4B2A;
+}
+
+.navLink:hover::after {
+  width: 100%;
+}
+
+.mobileMenu .navLink {
+  font-weight: 500;
+  font-size: 15px;
+}
 
         .email {
           font-size: 12px;

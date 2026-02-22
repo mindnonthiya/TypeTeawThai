@@ -122,17 +122,12 @@ export default function QuizPage() {
       setStep(step + 1)
       setSelected(null)
     } else {
-      if (!regionId) {
-        alert(lang === "th" ? "ไม่พบภูมิภาค" : "Region not found")
-        return
-      }
-
       const optionIds = Object.values(updated)
 
       router.push({
         pathname: "/results",
         query: {
-          regionId: regionId,
+          regionId: regionId ?? "", // ✅ ถ้าไม่มี ให้เป็น empty
           selected: JSON.stringify(optionIds),
           answers: JSON.stringify(updated),
         },
@@ -205,8 +200,8 @@ export default function QuizPage() {
               src={imageSrc}
               alt="question"
               style={{
-                width: "220px",
-                height: "220px",
+                width: "280px",
+                height: "280px",
                 objectFit: "contain",
                 display: "block",
                 margin: "0 auto"
