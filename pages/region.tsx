@@ -21,6 +21,12 @@ export default function SelectRegion() {
 
   useEffect(() => {
     async function loadRegions() {
+      if (!supabase) {
+        setError("Supabase is not configured")
+        setLoading(false)
+        return
+      }
+
       try {
         const { data, error } = await supabase
           .from("regions")

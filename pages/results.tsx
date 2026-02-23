@@ -155,6 +155,10 @@ export default function ResultsPage() {
   useEffect(() => {
     async function run() {
       if (!payload || (!user && !isGuest)) return
+      if (!supabase) {
+        setLoading(false)
+        return
+      }
 
       setLoading(true)   // ✅ เริ่มโหลดตรงนี้
 
