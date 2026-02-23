@@ -64,6 +64,7 @@ export default function HistoryListPage() {
 
   return (
     <div className="grid" style={{ gap: 14 }}>
+      
       <h1 className="h1">{t('historyTitle')}</h1>
 
       {error && <p style={{ color: 'red' }}>{error}</p>}

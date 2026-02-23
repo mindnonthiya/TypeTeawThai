@@ -195,7 +195,13 @@ export default function QuizPage() {
           </h2>
 
           {/* Image */}
-          <div style={{ textAlign: "center", marginBottom: "28px" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginBottom: "28px",
+            }}
+          >
             <img
               src={imageSrc}
               alt="question"
@@ -203,8 +209,6 @@ export default function QuizPage() {
                 width: "360px",
                 height: "280px",
                 objectFit: "contain",
-                display: "block",
-                margin: "0 auto"
               }}
             />
           </div>

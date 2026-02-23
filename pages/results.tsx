@@ -118,7 +118,7 @@ export default function ResultsPage() {
     const node = shareRef.current
 
     const dataUrl = await htmlToImage.toPng(node, {
-      pixelRatio: 1,
+      pixelRatio: 1.5,
     })
 
     const link = document.createElement('a')
@@ -473,7 +473,9 @@ export default function ResultsPage() {
               {/* 🔥 HIDDEN SHARE CARD (for export only) */}
               <div
                 style={{
-                  position: 'fixed',
+                  position: 'absolute',
+                  opacity: 0,
+                  pointerEvents: 'none',
                   top: -9999,
                   left: -9999,
                 }}
@@ -481,9 +483,9 @@ export default function ResultsPage() {
                 <div
                   ref={shareRef}
                   style={{
-                    width: 720,
-                    height: 1280,
-                    padding: 200,
+                    width: 800,
+                    height: 1400,
+                    padding: 140,
                     background:
                       'linear-gradient(160deg, #f5efe6 0%, #e8dfd3 40%, #f9f6f2 100%)',
                     display: 'flex',
@@ -508,8 +510,8 @@ export default function ResultsPage() {
                       <div
                         style={{
                           whiteSpace: 'pre-line',
-                          fontSize: 48,
-                          lineHeight: 1.65,
+                          fontSize: 34,
+                          lineHeight: 1.7,
                           fontWeight: 400,
                         }}
                       >
@@ -529,7 +531,7 @@ export default function ResultsPage() {
                       >
                         <div
                           style={{
-                            fontSize: 30,
+                            fontSize: 20,
                             opacity: 0.6,
                             letterSpacing: 1,
                           }}
@@ -541,9 +543,9 @@ export default function ResultsPage() {
 
                         <div
                           style={{
-                            fontSize: 96,
-                            fontWeight: 600,
-                            lineHeight: 1.15,
+                            fontSize: 64,
+                            fontWeight: 500,
+                            lineHeight: 1.2,
                           }}
                         >
                           {lang === 'th'
@@ -553,9 +555,9 @@ export default function ResultsPage() {
 
                         <div
                           style={{
-                            fontSize: 22,
+                            fontSize: 16,
+                            letterSpacing: 4,
                             opacity: 0.45,
-                            letterSpacing: 2,
                             marginTop: 6,
                           }}
                         >
@@ -566,10 +568,10 @@ export default function ResultsPage() {
                     {/* 🔥 BRAND NAME ย้ายมาล่างสุด */}
                     <div
                       style={{
-                        fontSize: 28,
-                        letterSpacing: 5,
-                        opacity: 0.8,
-                        marginTop: 280,
+                        fontSize: 22,
+                        letterSpacing: 6,
+                        opacity: 0.7,
+                        marginTop: 220,
                       }}
                     >
 

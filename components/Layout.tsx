@@ -27,97 +27,106 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         />
         <div className="inner">
 
-          <Link href="/" className="brand">
-            <span className="dark">Type</span>
-            <span className="gold">Teaw</span>
-            <span className="dark">Thai</span>
-          </Link>
-
-          <div className="desktopMenu">
-            {user && (
-              <Link href="/history" className="navLink">
-                {t("history")}
-              </Link>
-            )}
-
-            {user ? (
-              <>
-                <span className="email">{user.email}</span>
-
-              </>
-            ) : (
-              <button
-                onClick={() => setShowLogin(true)}
-                className="primaryBtn"
-              >
-                {t("login")}
-              </button>
-            )}
-
-            <div className="langSwitch" onClick={toggle}>
-              <span className={lang === "th" ? "active" : ""}>TH</span>
-              <span className={lang === "en" ? "active" : ""}>EN</span>
-            </div>
+          <div className="brandBlock">
+            <Link href="/" className="brand">
+              <span className="dark">Type</span>
+              <span className="gold">Teaw</span>
+              <span className="dark">Thai</span>
+            </Link>
           </div>
 
-          <div className="mobileIcons">
-
+          <div className="rightSide">
             <div className="langSwitch" onClick={toggle}>
               <span className={lang === "th" ? "active" : ""}>TH</span>
               <span className={lang === "en" ? "active" : ""}>EN</span>
             </div>
 
-            <button
-              onClick={() => setOpen(!open)}
-              className="menuBtn"
-            >
-              ☰
-            </button>
-
-            {user && (
+            <div style={{ position: "relative" }}>
               <button
-                onClick={onLogout}
-                className="iconBtn"
-                title="Logout"
+                onClick={() => setOpen(!open)}
+                className="menuBtn"
               >
-                <img src="/images/exit.png" alt="logout" className="iconImg" />
+                ☰
               </button>
-            )}
 
+              {open && (
+                <div className="mobileMenuBox">
+
+                  {user && (
+                    <span className="menuEmail">
+                      {user.email}
+                    </span>
+                  )}
+
+                  <Link href="/" passHref legacyBehavior>
+                    <a className="menuItem" onClick={() => setOpen(false)}>
+                      <div className="iconWrap">
+                        <img src="/images/home.png" className="menuIcon" />
+                      </div>
+                      <span>{lang === "th" ? "หน้าแรก" : "Home"}</span>
+                    </a>
+                  </Link>
+
+                  {user && (
+                    <Link href="/history" passHref legacyBehavior>
+                      <a className="menuItem" onClick={() => setOpen(false)}>
+                        <div className="iconWrap">
+                          <img src="/images/history.png" className="menuIcon" />
+                        </div>
+                        <span>{lang === "th" ? "ประวัติ" : "History"}</span>
+                      </a>
+                    </Link>
+                  )}
+
+                  {user && (
+                    <>
+                      <div className="divider" />
+
+                      <button
+                        onClick={() => {
+                          onLogout();
+                          setOpen(false);
+                        }}
+                        className="menuItemBtn logoutItem"
+                      >
+                        <div className="iconWrap">
+                          <img src="/images/exit.png" className="menuIcon" />
+                        </div>
+                        <span>{lang === "th" ? "ออกจากระบบ" : "Logout"}</span>
+                      </button>
+                    </>
+                  )}
+
+                  {!user && (
+                    <button
+                      onClick={() => {
+                        setShowLogin(true);
+                        setOpen(false);
+                      }}
+                      className="menuItemBtn"
+                    >
+                      <div className="iconWrap">
+                        <img src="/images/enter.png" className="menuIcon" />
+                      </div>
+                      <span>{t("login")}</span>
+                    </button>
+                  )}
+
+                </div>
+              )}
+            </div>
           </div>
         </div>
-
-        {open && (
-          <div className="mobileMenu">
-            {user && (
-              <Link href="/history" className="navLink">
-                {t("history")}
-              </Link>
-            )}
-
-            {user ? (
-              <span className="email">{user.email}</span>
-            ) : (
-              <button
-                onClick={() => {
-                  setShowLogin(true);
-                  setOpen(false);
-                }}
-                className="primaryBtn small"
-              >
-                {t("login")}
-              </button>
-            )}
-          </div>
-        )}
-      </header>
+      </header >
 
       <main className="main">{children}</main>
 
       {/* ✅ Login Modal อยู่ตรงนี้ที่เดียว */}
-      {!user && showLogin && (
-        <LoginModal onClose={() => setShowLogin(false)} />
-      )}
+      {
+        !user && showLogin && (
+          <LoginModal onClose={() => setShowLogin(false)} />
+        )
+      }
 
       <style jsx>{`
         .header {
@@ -125,6 +134,22 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           border-bottom: 1px solid #E0D5C3;
           padding: 14px 20px;
         }
+
+        .menuIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.divider {
+  height: 1px;
+  background: #E2D6C7;
+  margin: 6px 4px;
+}
+
+.logoutItem span {
+  color: #9C3B2E;
+}
 
         .iconBtn {
   background: none;
@@ -146,17 +171,92 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   transform: scale(1.1);
   opacity: 0.8;
 }
+  
+.menuText {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.menuTitle {
+  font-weight: 500;
+}
+
+.menuEmail {
+  font-size: 11px;
+  color: #9A8B7C;
+  margin-top: 3px;
+}
+
+.menuItem,
+.menuItemBtn {
+  display: flex !important;
+  align-items: center;
+  flex-direction: row !important;
+
+  gap: 12px;
+  padding: 12px 16px;
+  width: 100%;
+
+  border-radius: 14px;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+  .menuItem {
+  box-sizing: border-box;
+}
+
+.menuItem span,
+.menuItemBtn span {
+  display: inline-block;
+}
+
+.menuItem:hover,
+.menuItemBtn:hover {
+  background: rgba(176, 122, 58, 0.08);
+}
+
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.iconSlot {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: #D9C7B5;
+  flex-shrink: 0;
+}
 
         .inner {
-          max-width: 1100px;
-          margin: 0 auto;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.brandBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  gap: 4px;
+}
+
+.rightSide {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
 
         .brand {
-  font-size: 44px;
+  font-size: 60px;
   font-weight: 600;
   letter-spacing: 1px;
   text-decoration: none;
@@ -168,7 +268,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 }
 
         .brand .dark { color: #2F2F2F; }
-        .brand .gold { color: #B07A3A; }
+        .brand .gold {
+  color: #B07A3A;
+  letter-spacing: 2px;
+}
 
         .desktopMenu {
           display: flex;
@@ -232,6 +335,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         .primaryBtn.small {
           width: fit-content;
         }
+          .emailUnder {
+  font-size: 10px;
+  color: #9A8B7C;     /* 👈 จางขึ้น */
+  margin-top: 6px;
+  padding-left: 2px;  /* 👈 เยื้องนิดนึง */
+  opacity: 0.8;
+}
 
         .langSwitch {
           display: flex;
@@ -269,14 +379,40 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           cursor: pointer;
         }
 
-        .mobileMenu {
-          margin-top: 12px;
-          padding-top: 12px;
-          border-top: 1px solid #E0D5C3;
-          display: flex;
-          flex-direction: column;
-          gap: 14px;
-        }
+        .mobileMenuBox {
+  position: absolute;
+  right: 0;
+  top: 44px;
+
+  min-width: 260px;
+  padding: 12px;
+
+  border-radius: 18px;
+
+  background: #EFE6D8;
+  border: 1px solid #E0D5C3;
+  box-shadow: 0 24px 50px rgba(0,0,0,0.08);
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  z-index: 100;
+}
+
+.iconWrap {
+  width: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.menuIcon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
 
         .main {
           max-width: 1100px;
