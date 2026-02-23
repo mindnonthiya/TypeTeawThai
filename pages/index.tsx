@@ -6,16 +6,16 @@ import type { NextPageWithLayout } from "./_app"
 
 const Home: NextPageWithLayout = () => {
   const router = useRouter()
-  const { user, loading } = useAuth()
+  const { user, isGuest, loading } = useAuth()
   const { t } = useLang()
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && !isGuest) {
       router.replace("/login")
     }
-  }, [user, loading, router])
+  }, [user, isGuest, loading, router])
 
-  if (loading || !user) return null
+  if (loading || (!user && !isGuest)) return null
 
   return (
     <>

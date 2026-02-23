@@ -45,7 +45,7 @@ export default function QuizPage() {
       ? Number(regionIdParam)
       : undefined
 
-  const { user, loading: authLoading } = useAuth()
+  const { user, isGuest, loading: authLoading } = useAuth()
   const { t, lang } = useLang() // ✅ เพิ่ม lang ตรงนี้
 
   const [loading, setLoading] = useState(true)
@@ -56,14 +56,14 @@ export default function QuizPage() {
   const [selected, setSelected] = useState<number | null>(null)
   const [answers, setAnswers] = useState<Record<number, number>>({})
 
-  // 🔐 redirect ถ้าไม่ login
+  // 🔐 redirect ถ้าไม่ได้ login และไม่ได้เข้าแบบ guest
   useEffect(() => {
-    if (!authLoading && !user) router.replace('/login')
-  }, [authLoading, user, router])
+    if (!authLoading && !user && !isGuest) router.replace('/login')
+  }, [authLoading, user, isGuest, router])
 
   // 📦 โหลดคำถามจาก Supabase
   useEffect(() => {
-    if (!router.isReady || !user) return
+    if (!router.isReady || (!user && !isGuest)) return
 
     async function load() {
       if (!supabase) {
@@ -109,7 +109,7 @@ export default function QuizPage() {
     }
 
     load()
-  }, [router.isReady, user])
+  }, [router.isReady, user, isGuest])
 
   const nextQuestion = () => {
     if (selected === null) return
@@ -145,7 +145,7 @@ export default function QuizPage() {
   if (authLoading || loading)
     return <p className="muted">{t('loading')}</p>
 
-  if (!user) return null
+  if (!user && !isGuest) return null
 
   if (error)
     return (

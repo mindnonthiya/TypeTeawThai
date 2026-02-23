@@ -9,7 +9,7 @@ type Props = {
 
 export default function LoginModal({ onClose }: Props) {
   const router = useRouter()
-  const { signIn, signUp } = useAuth()
+  const { signIn, signUp, continueAsGuest } = useAuth()
   const { lang } = useLang()
 
   const [mode, setMode] = useState<"login" | "register">("login")
@@ -36,6 +36,11 @@ export default function LoginModal({ onClose }: Props) {
     } finally {
       setBusy(false)
     }
+  }
+
+  const handleSkip = () => {
+    continueAsGuest()
+    router.push('/region')
   }
 
   return (
@@ -113,6 +118,14 @@ export default function LoginModal({ onClose }: Props) {
               : lang === "th" ? "เข้าสู่ระบบ" : "Login"}
           </span>
         </p>
+
+        <button
+          type="button"
+          className="skip-btn"
+          onClick={handleSkip}
+        >
+          {lang === "th" ? "ข้ามการสมัครและเริ่มแบบทดสอบ" : "Skip registration and start quiz"}
+        </button>
       </form>
 
       <style jsx>{`
@@ -209,6 +222,16 @@ export default function LoginModal({ onClose }: Props) {
         .error {
           color: #c0392b;
           font-size: 11px;
+        }
+
+        .skip-btn {
+          border: none;
+          background: transparent;
+          color: #6b5448;
+          font-size: 12px;
+          text-decoration: underline;
+          cursor: pointer;
+          margin-top: -2px;
         }
       `}</style>
     </div>
