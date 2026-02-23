@@ -104,3 +104,41 @@ export function pickAttractions(profile: Profile, all: Attraction[], limit = 3):
   };
   return [...all].sort((a, b) => scoreOne(b) - scoreOne(a)).slice(0, limit);
 }
+
+
+export function provinceAttractionAffinity(profile: Profile, all: Attraction[]): number {
+  if (!all.length) return 0;
+
+  const weights: Record<keyof Profile, number> = {
+    nature: profile.nature,
+    cafe: profile.cafe,
+    adventure: profile.adventure,
+    culture: profile.culture,
+    sea: profile.sea,
+  };
+
+  const hitRate = {
+    nature: 0,
+    cafe: 0,
+    adventure: 0,
+    culture: 0,
+    sea: 0,
+  } satisfies Record<keyof Profile, number>;
+
+  for (const attraction of all) {
+    const cats = new Set((attraction.categories || []).map((c) => String(c).toLowerCase()));
+    (Object.keys(hitRate) as Array<keyof Profile>).forEach((trait) => {
+      if (cats.has(trait)) hitRate[trait] += 1;
+    });
+  }
+
+  const normalized = (Object.keys(hitRate) as Array<keyof Profile>).reduce((acc, trait) => {
+    acc[trait] = hitRate[trait] / all.length;
+    return acc;
+  }, { nature: 0, cafe: 0, adventure: 0, culture: 0, sea: 0 } as Record<keyof Profile, number>);
+
+  return (Object.keys(weights) as Array<keyof Profile>).reduce(
+    (sum, trait) => sum + normalized[trait] * weights[trait],
+    0
+  );
+}

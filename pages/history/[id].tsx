@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLang } from '@/contexts/LanguageContext'
 import { supabase } from '@/utils/supabase/client'
+import * as htmlToImage from 'html-to-image'
 
 type QuizResultRow = {
   id: string
@@ -20,6 +21,20 @@ export default function HistoryDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [row, setRow] = useState<QuizResultRow | null>(null)
+  const shareRef = useRef<HTMLDivElement>(null)
+
+  async function downloadImage() {
+    if (!shareRef.current) return
+
+    const dataUrl = await htmlToImage.toPng(shareRef.current, {
+      pixelRatio: 1.5,
+    })
+
+    const link = document.createElement('a')
+    link.download = `travel-history-${row?.id || 'result'}.png`
+    link.href = dataUrl
+    link.click()
+  }
 
   useEffect(() => {
     if (!router.isReady) return
@@ -36,6 +51,12 @@ export default function HistoryDetailPage() {
     }
 
     async function load() {
+      if (!supabase) {
+        setError('Supabase is not configured')
+        setLoading(false)
+        return
+      }
+
       try {
         const { data, error } = await supabase
           .from('quiz_results')
@@ -62,6 +83,11 @@ export default function HistoryDetailPage() {
 
   if (!row && !error)
     return <p className="muted">No data found.</p>
+
+  const topProvince =
+    Array.isArray(row?.recommended_provinces) && row?.recommended_provinces?.length
+      ? row?.recommended_provinces[0]
+      : null
 
   return (
     <div className="grid" style={{ gap: 14 }}>
@@ -112,6 +138,123 @@ export default function HistoryDetailPage() {
                 </li>
               ))}
             </ul>
+          </div>
+
+          <button
+            onClick={downloadImage}
+            style={{
+              width: 'fit-content',
+              padding: '10px 18px',
+              borderRadius: 999,
+              border: 'none',
+              background: '#8C6A4A',
+              color: '#fff',
+              cursor: 'pointer',
+            }}
+          >
+            {lang === 'th' ? 'แชร์ผลลัพธ์' : 'Share Result'}
+          </button>
+
+          <div
+            style={{
+              position: 'absolute',
+              opacity: 0,
+              pointerEvents: 'none',
+              top: -9999,
+              left: -9999,
+            }}
+          >
+            <div
+              ref={shareRef}
+              style={{
+                width: 800,
+                height: 1400,
+                padding: 140,
+                background:
+                  'linear-gradient(160deg, #f5efe6 0%, #e8dfd3 40%, #f9f6f2 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontFamily: 'serif',
+                color: '#2d2a26',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 60,
+                  textAlign: 'center',
+                  maxWidth: 760,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 20,
+                    opacity: 0.6,
+                    letterSpacing: 1,
+                  }}
+                >
+                  {lang === 'th' ? 'ผลลัพธ์จากประวัติของคุณ' : 'Your saved result'}
+                </div>
+
+                {topProvince && (
+                  <div
+                    style={{
+                      marginTop: 20,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 22,
+                      alignItems: 'center',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 20,
+                        opacity: 0.6,
+                        letterSpacing: 1,
+                      }}
+                    >
+                      {lang === 'th'
+                        ? 'จังหวัดที่เหมาะกับคุณที่สุดคือ'
+                        : 'The province that fits you best is'}
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: 64,
+                        fontWeight: 500,
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {lang === 'th' ? topProvince.name_th : topProvince.name_en}
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: 16,
+                        letterSpacing: 4,
+                        opacity: 0.45,
+                        marginTop: 6,
+                      }}
+                    >
+                      BEST MATCH
+                    </div>
+                  </div>
+                )}
+
+                <div
+                  style={{
+                    fontSize: 22,
+                    letterSpacing: 6,
+                    opacity: 0.7,
+                    marginTop: 220,
+                  }}
+                >
+                  TYPETEAWTHAI
+                </div>
+              </div>
+            </div>
           </div>
         </>
       )}

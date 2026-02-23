@@ -3,13 +3,9 @@ import { useRouter } from "next/router"
 import { useAuth } from "@/contexts/AuthContext"
 import { useLang } from "@/contexts/LanguageContext"
 
-type Props = {
-  onClose: () => void
-}
-
-export default function LoginModal({ onClose }: Props) {
+export default function LoginModal() {
   const router = useRouter()
-  const { signIn, signUp } = useAuth()
+  const { signIn, signUp, continueAsGuest } = useAuth()
   const { lang } = useLang()
 
   const [mode, setMode] = useState<"login" | "register">("login")
@@ -30,7 +26,7 @@ export default function LoginModal({ onClose }: Props) {
         await signUp(email, password)
       }
 
-      router.push("/") // redirect ที่เดียว
+      router.push("/")
     } catch (e: any) {
       setError(e?.message || "Something went wrong")
     } finally {
@@ -38,21 +34,14 @@ export default function LoginModal({ onClose }: Props) {
     }
   }
 
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <form
-        className="modal-card"
-        onClick={(e) => e.stopPropagation()}
-        onSubmit={handleSubmit}
-      >
-        <button
-          type="button"
-          className="modal-close"
-          onClick={onClose}
-        >
-          ✕
-        </button>
+  const handleSkip = () => {
+    continueAsGuest()
+    router.push('/region')
+  }
 
+  return (
+    <div className="modal-overlay">
+      <form className="modal-card" onSubmit={handleSubmit}>
         <h1 className="card-title">
           {mode === "login"
             ? lang === "th" ? "เข้าสู่ระบบ" : "Login"
@@ -87,11 +76,7 @@ export default function LoginModal({ onClose }: Props) {
 
         {error && <p className="error">{error}</p>}
 
-        <button
-          type="submit"
-          className="main-btn"
-          disabled={busy}
-        >
+        <button type="submit" className="main-btn" disabled={busy}>
           {busy
             ? "..."
             : mode === "login"
@@ -113,6 +98,10 @@ export default function LoginModal({ onClose }: Props) {
               : lang === "th" ? "เข้าสู่ระบบ" : "Login"}
           </span>
         </p>
+
+        <button type="button" className="skip-btn" onClick={handleSkip}>
+          {lang === "th" ? "ข้ามการสมัครและเริ่มแบบทดสอบ" : "Skip registration and start quiz"}
+        </button>
       </form>
 
       <style jsx>{`
@@ -139,17 +128,6 @@ export default function LoginModal({ onClose }: Props) {
           flex-direction: column;
           gap: 12px;
           box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-        }
-
-        .modal-close {
-          position: absolute;
-          top: 10px;
-          right: 14px;
-          border: none;
-          background: none;
-          font-size: 18px;
-          cursor: pointer;
-          opacity: 0.7;
         }
 
         .card-title {
@@ -209,6 +187,16 @@ export default function LoginModal({ onClose }: Props) {
         .error {
           color: #c0392b;
           font-size: 11px;
+        }
+
+        .skip-btn {
+          border: none;
+          background: transparent;
+          color: #6b5448;
+          font-size: 12px;
+          text-decoration: underline;
+          cursor: pointer;
+          margin-top: -2px;
         }
       `}</style>
     </div>

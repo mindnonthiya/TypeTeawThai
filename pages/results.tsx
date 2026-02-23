@@ -8,6 +8,7 @@ import {
   computeProfile,
   pickAttractions,
   provinceMatchScore,
+  provinceAttractionAffinity,
   Profile,
 } from '@/lib/recommend'
 
@@ -101,7 +102,7 @@ reminding you that life has its rhythm.`
 
 export default function ResultsPage() {
   const router = useRouter()
-  const { user, loading: authLoading } = useAuth()
+  const { user, isGuest, loading: authLoading } = useAuth()
   const { lang } = useLang()
 
   const [loading, setLoading] = useState(false)
@@ -147,14 +148,18 @@ export default function ResultsPage() {
 
   useEffect(() => {
     if (!router.isReady) return
-    if (!authLoading && !user) {
+    if (!authLoading && !user && !isGuest) {
       router.replace('/login')
     }
-  }, [authLoading, user, router.isReady])
+  }, [authLoading, user, isGuest, router.isReady])
 
   useEffect(() => {
     async function run() {
-      if (!payload || !user) return
+      if (!payload || (!user && !isGuest)) return
+      if (!supabase) {
+        setLoading(false)
+        return
+      }
 
       setLoading(true)   // ✅ เริ่มโหลดตรงนี้
 
@@ -188,30 +193,47 @@ export default function ResultsPage() {
 
         if (pErr) throw pErr
 
-        const rankedAll = (pData || [])
-          .map((p: any) => ({
-            ...p,
-            matchScore: provinceMatchScore(prof, p),
-          }))
-          .sort((a, b) => {
-            const diff = b.matchScore - a.matchScore
-            if (diff !== 0) return diff
-
-            // แทนที่ random ด้วย id
-            return a.id - b.id
-          })
-
-        const topScore = rankedAll[0]?.matchScore || 0
-        const ranked = rankedAll.slice(0, 3)
-
-        const provinceIds = ranked.map((p: any) => p.id)
+        const allProvinceIds = (pData || []).map((p: any) => p.id)
 
         const { data: allAttractions, error: aErr } = await supabase
           .from('province_attractions')
           .select('*')
-          .in('province_id', provinceIds)
+          .in('province_id', allProvinceIds)
 
         if (aErr) throw aErr
+
+        const rankedAll = (pData || [])
+          .map((p: any) => {
+            const provinceAttractions = (allAttractions || []).filter(
+              (a: any) => a.province_id === p.id
+            )
+            const baseScore = provinceMatchScore(prof, p)
+            const attractionAffinity = provinceAttractionAffinity(prof, provinceAttractions)
+            const attractionVolumeBonus = Math.min(0.03, provinceAttractions.length * 0.002)
+
+            return {
+              ...p,
+              matchScore: baseScore,
+              attractionAffinity,
+              attractionCount: provinceAttractions.length,
+              finalScore: baseScore * 0.7 + attractionAffinity * 0.3 + attractionVolumeBonus,
+            }
+          })
+          .sort((a, b) => {
+            const diff = b.finalScore - a.finalScore
+            if (diff !== 0) return diff
+
+            const affinityDiff = b.attractionAffinity - a.attractionAffinity
+            if (affinityDiff !== 0) return affinityDiff
+
+            const countDiff = b.attractionCount - a.attractionCount
+            if (countDiff !== 0) return countDiff
+
+            return a.id - b.id
+          })
+
+        const ranked = rankedAll.slice(0, 3)
+
 
         const out = ranked.map((prov: any) => ({
           province: prov,
@@ -226,12 +248,10 @@ export default function ResultsPage() {
 
         setItems(out)
 
-        // 🔥 INSERT ต้องอยู่ตรงนี้
         if (!hasInserted.current) {
           hasInserted.current = true
 
-          await supabase.from('quiz_results').insert({
-            user_id: user.id,
+          const resultPayload = {
             recommended_provinces: ranked.map((p: any) => ({
               id: p.id,
               name_th: p.name_th,
@@ -245,7 +265,23 @@ export default function ResultsPage() {
                 description: loc.description,
               }))
             ),
-          })
+          }
+
+          if (user) {
+            await supabase.from('quiz_results').insert({
+              user_id: user.id,
+              ...resultPayload,
+            })
+          } else {
+            const key = 'ttt_guest_results'
+            const existing = JSON.parse(window.localStorage.getItem(key) || '[]')
+            existing.unshift({
+              id: `guest-${Date.now()}`,
+              created_at: new Date().toISOString(),
+              ...resultPayload,
+            })
+            window.localStorage.setItem(key, JSON.stringify(existing.slice(0, 20)))
+          }
         }
 
       } catch (err) {
@@ -257,8 +293,8 @@ export default function ResultsPage() {
       }
     }
 
-    if (user && payload) run()
-  }, [user, payload])
+    if ((user || isGuest) && payload) run()
+  }, [user, isGuest, payload])
 
   if (authLoading)
     return <p style={{ textAlign: 'center', marginTop: 120 }}>Checking login...</p>
@@ -266,7 +302,7 @@ export default function ResultsPage() {
   if (loading)
     return <p style={{ textAlign: 'center', marginTop: 120 }}>Preparing your result...</p>
 
-  if (!user) return null
+  if (!user && !isGuest) return null
 
   // ✅ ใส่ตรงนี้
   if (!payload) {

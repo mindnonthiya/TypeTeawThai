@@ -8,9 +8,11 @@ export type AuthUser = {
 
 type Ctx = {
   user: AuthUser | null;
+  isGuest: boolean;
   loading: boolean;
   signIn: (identifier: string, password: string) => Promise<void>;
   signUp: (identifier: string, password: string) => Promise<void>;
+  continueAsGuest: () => void;
   signOut: () => Promise<void>;
 };
 
@@ -25,10 +27,15 @@ function normalizeIdentifier(input: string): { email: string; username: string |
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [isGuest, setIsGuest] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let unsub: (() => void) | null = null;
+
+    if (typeof window !== 'undefined') {
+      setIsGuest(window.localStorage.getItem('ttt_guest_mode') === '1');
+    }
 
     async function init() {
       if (!supabase) {
@@ -42,6 +49,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           ? { id: u.id, email: u.email ?? null }
           : null
       );
+      if (u) {
+        setIsGuest(false);
+        if (typeof window !== 'undefined') {
+          window.localStorage.removeItem('ttt_guest_mode');
+        }
+      }
 
       setLoading(false);
 
@@ -52,6 +65,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             ? { id: u2.id, email: u2.email ?? null }
             : null
         );
+        if (u2) {
+          setIsGuest(false);
+          if (typeof window !== 'undefined') {
+            window.localStorage.removeItem('ttt_guest_mode');
+          }
+        }
 
       });
       unsub = () => sub.subscription.unsubscribe();
@@ -68,6 +87,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { email } = normalizeIdentifier(identifier);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('ttt_guest_mode');
+    }
+    setIsGuest(false);
   }
 
   async function signUp(identifier: string, password: string) {
@@ -85,14 +108,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // ignore if profiles table/RLS not ready
       }
     }
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('ttt_guest_mode');
+    }
+    setIsGuest(false);
+  }
+
+  function continueAsGuest() {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('ttt_guest_mode', '1');
+    }
+    setIsGuest(true);
   }
 
   async function signOut() {
     if (!supabase) return;
     await supabase.auth.signOut();
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('ttt_guest_mode');
+    }
+    setIsGuest(false);
   }
 
-  const value = useMemo<Ctx>(() => ({ user, loading, signIn, signUp, signOut }), [user, loading]);
+  const value = useMemo<Ctx>(
+    () => ({ user, isGuest, loading, signIn, signUp, continueAsGuest, signOut }),
+    [user, isGuest, loading]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

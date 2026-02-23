@@ -124,7 +124,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* ✅ Login Modal อยู่ตรงนี้ที่เดียว */}
       {
         !user && showLogin && (
-          <LoginModal onClose={() => setShowLogin(false)} />
+          <LoginModal />
         )
       }
 

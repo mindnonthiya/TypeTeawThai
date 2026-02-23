@@ -33,6 +33,12 @@ export default function HistoryListPage() {
     if (!user) return
 
     async function load() {
+      if (!supabase) {
+        setError('Supabase is not configured')
+        setLoading(false)
+        return
+      }
+
       try {
         const { data, error } = await supabase
           .from('quiz_results')
