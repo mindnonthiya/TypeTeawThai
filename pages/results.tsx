@@ -8,6 +8,7 @@ import {
   computeProfile,
   pickAttractions,
   provinceMatchScore,
+  provinceAttractionAffinity,
   Profile,
 } from '@/lib/recommend'
 
@@ -192,30 +193,47 @@ export default function ResultsPage() {
 
         if (pErr) throw pErr
 
-        const rankedAll = (pData || [])
-          .map((p: any) => ({
-            ...p,
-            matchScore: provinceMatchScore(prof, p),
-          }))
-          .sort((a, b) => {
-            const diff = b.matchScore - a.matchScore
-            if (diff !== 0) return diff
-
-            // แทนที่ random ด้วย id
-            return a.id - b.id
-          })
-
-        const topScore = rankedAll[0]?.matchScore || 0
-        const ranked = rankedAll.slice(0, 3)
-
-        const provinceIds = ranked.map((p: any) => p.id)
+        const allProvinceIds = (pData || []).map((p: any) => p.id)
 
         const { data: allAttractions, error: aErr } = await supabase
           .from('province_attractions')
           .select('*')
-          .in('province_id', provinceIds)
+          .in('province_id', allProvinceIds)
 
         if (aErr) throw aErr
+
+        const rankedAll = (pData || [])
+          .map((p: any) => {
+            const provinceAttractions = (allAttractions || []).filter(
+              (a: any) => a.province_id === p.id
+            )
+            const baseScore = provinceMatchScore(prof, p)
+            const attractionAffinity = provinceAttractionAffinity(prof, provinceAttractions)
+            const attractionVolumeBonus = Math.min(0.03, provinceAttractions.length * 0.002)
+
+            return {
+              ...p,
+              matchScore: baseScore,
+              attractionAffinity,
+              attractionCount: provinceAttractions.length,
+              finalScore: baseScore * 0.7 + attractionAffinity * 0.3 + attractionVolumeBonus,
+            }
+          })
+          .sort((a, b) => {
+            const diff = b.finalScore - a.finalScore
+            if (diff !== 0) return diff
+
+            const affinityDiff = b.attractionAffinity - a.attractionAffinity
+            if (affinityDiff !== 0) return affinityDiff
+
+            const countDiff = b.attractionCount - a.attractionCount
+            if (countDiff !== 0) return countDiff
+
+            return a.id - b.id
+          })
+
+        const ranked = rankedAll.slice(0, 3)
+
 
         const out = ranked.map((prov: any) => ({
           province: prov,
