@@ -12,7 +12,7 @@ type Region = {
 
 export default function SelectRegion() {
   const router = useRouter()
-  const { user, loading: authLoading } = useAuth()
+  const { user, isGuest, loading: authLoading } = useAuth()
   const { lang } = useLang()
 
   const [regions, setRegions] = useState<Region[]>([])
@@ -21,6 +21,12 @@ export default function SelectRegion() {
 
   useEffect(() => {
     async function loadRegions() {
+      if (!supabase) {
+        setError("Supabase is not configured")
+        setLoading(false)
+        return
+      }
+
       try {
         const { data, error } = await supabase
           .from("regions")
@@ -36,8 +42,8 @@ export default function SelectRegion() {
       }
     }
 
-    if (user) loadRegions()
-  }, [user])
+    if (user || isGuest) loadRegions()
+  }, [user, isGuest])
 
   const selectRegion = (regionId: number) => {
     router.push({
@@ -47,6 +53,8 @@ export default function SelectRegion() {
   }
 
   if (authLoading || loading) return null
+
+  if (!user && !isGuest) return null
   
   return (
     <>

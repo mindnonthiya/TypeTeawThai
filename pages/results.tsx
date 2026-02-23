@@ -101,7 +101,7 @@ reminding you that life has its rhythm.`
 
 export default function ResultsPage() {
   const router = useRouter()
-  const { user, loading: authLoading } = useAuth()
+  const { user, isGuest, loading: authLoading } = useAuth()
   const { lang } = useLang()
 
   const [loading, setLoading] = useState(false)
@@ -147,14 +147,18 @@ export default function ResultsPage() {
 
   useEffect(() => {
     if (!router.isReady) return
-    if (!authLoading && !user) {
+    if (!authLoading && !user && !isGuest) {
       router.replace('/login')
     }
-  }, [authLoading, user, router.isReady])
+  }, [authLoading, user, isGuest, router.isReady])
 
   useEffect(() => {
     async function run() {
-      if (!payload || !user) return
+      if (!payload || (!user && !isGuest)) return
+      if (!supabase) {
+        setLoading(false)
+        return
+      }
 
       setLoading(true)   // ✅ เริ่มโหลดตรงนี้
 
@@ -226,12 +230,10 @@ export default function ResultsPage() {
 
         setItems(out)
 
-        // 🔥 INSERT ต้องอยู่ตรงนี้
         if (!hasInserted.current) {
           hasInserted.current = true
 
-          await supabase.from('quiz_results').insert({
-            user_id: user.id,
+          const resultPayload = {
             recommended_provinces: ranked.map((p: any) => ({
               id: p.id,
               name_th: p.name_th,
@@ -245,7 +247,23 @@ export default function ResultsPage() {
                 description: loc.description,
               }))
             ),
-          })
+          }
+
+          if (user) {
+            await supabase.from('quiz_results').insert({
+              user_id: user.id,
+              ...resultPayload,
+            })
+          } else {
+            const key = 'ttt_guest_results'
+            const existing = JSON.parse(window.localStorage.getItem(key) || '[]')
+            existing.unshift({
+              id: `guest-${Date.now()}`,
+              created_at: new Date().toISOString(),
+              ...resultPayload,
+            })
+            window.localStorage.setItem(key, JSON.stringify(existing.slice(0, 20)))
+          }
         }
 
       } catch (err) {
@@ -257,8 +275,8 @@ export default function ResultsPage() {
       }
     }
 
-    if (user && payload) run()
-  }, [user, payload])
+    if ((user || isGuest) && payload) run()
+  }, [user, isGuest, payload])
 
   if (authLoading)
     return <p style={{ textAlign: 'center', marginTop: 120 }}>Checking login...</p>
@@ -266,7 +284,7 @@ export default function ResultsPage() {
   if (loading)
     return <p style={{ textAlign: 'center', marginTop: 120 }}>Preparing your result...</p>
 
-  if (!user) return null
+  if (!user && !isGuest) return null
 
   // ✅ ใส่ตรงนี้
   if (!payload) {
