@@ -4,12 +4,27 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useLang } from '@/contexts/LanguageContext'
 import { supabase } from '@/utils/supabase/client'
 import * as htmlToImage from 'html-to-image'
+import ShareCard from '@/components/ShareCard'
+import type { ProfileTrait } from '@/components/ShareCard'
+
+import { IBM_Plex_Sans_Thai } from 'next/font/google'
+const ibmThai = IBM_Plex_Sans_Thai({
+  subsets: ['thai'],
+  weight: ['300', '400', '500', '600', '700'],
+  display: 'swap',
+})
 import {
   computeProfile,
   pickAttractions,
   provinceMatchScore,
   Profile,
 } from '@/lib/recommend'
+
+function getTopTrait(profile: Profile): ProfileTrait | null {
+  if (!profile) return null
+  const sorted = Object.entries(profile).sort((a, b) => b[1] - a[1])
+  return (sorted[0]?.[0] as ProfileTrait) || null
+}
 
 /* ================= STORY ================= */
 
@@ -112,13 +127,16 @@ export default function ResultsPage() {
   const hasInserted = useRef(false)
   const shareRef = useRef<HTMLDivElement>(null)
 
+
   async function downloadImage() {
     if (!shareRef.current) return
 
-    const node = shareRef.current
+    await document.fonts.ready
+    await new Promise(res => setTimeout(res, 100))
 
-    const dataUrl = await htmlToImage.toPng(node, {
-      pixelRatio: 1.5,
+    const dataUrl = await htmlToImage.toPng(shareRef.current, {
+      pixelRatio: 2,
+      cacheBust: true,
     })
 
     const link = document.createElement('a')
@@ -230,7 +248,7 @@ export default function ResultsPage() {
 
         setItems(out)
 
-        if (!hasInserted.current) {
+        if (!hasInserted.current && !router.query.saved) {
           hasInserted.current = true
 
           const resultPayload = {
@@ -264,6 +282,15 @@ export default function ResultsPage() {
             })
             window.localStorage.setItem(key, JSON.stringify(existing.slice(0, 20)))
           }
+
+          router.replace(
+            {
+              pathname: router.pathname,
+              query: { ...router.query, saved: '1' },
+            },
+            undefined,
+            { shallow: true }
+          )
         }
 
       } catch (err) {
@@ -427,15 +454,12 @@ export default function ResultsPage() {
 
         <div style={{ position: 'relative', flex: '1 1 180px' }}>
           <button
+            className="primary"
             onClick={() => setShareOpen(!shareOpen)}
             style={{
               width: '100%',
               padding: 12,
               borderRadius: 999,
-              border: 'none',
-              background: '#8C6A4A',
-              color: '#fff',
-              cursor: 'pointer',
             }}
           >
             {lang === 'th' ? 'แชร์ผลลัพธ์' : 'Share Result'}
@@ -498,103 +522,26 @@ export default function ResultsPage() {
                   left: -9999,
                 }}
               >
+                {/* 🔥 HIDDEN SHARE CARD (for export only) */}
                 <div
-                  ref={shareRef}
                   style={{
-                    width: 800,
-                    height: 1400,
-                    padding: 140,
-                    background:
-                      'linear-gradient(160deg, #f5efe6 0%, #e8dfd3 40%, #f9f6f2 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontFamily: 'serif',
-                    color: '#2d2a26',
+                    position: 'absolute',
+                    opacity: 0,
+                    pointerEvents: 'none',
+                    top: -9999,
+                    left: -9999,
                   }}
                 >
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 60,
-                      textAlign: 'center',
-                      maxWidth: 760,
-                    }}
-                  >
-
-
+                  <div ref={shareRef}>
                     {profile && (
-                      <div
-                        style={{
-                          whiteSpace: 'pre-line',
-                          fontSize: 34,
-                          lineHeight: 1.7,
-                          fontWeight: 400,
-                        }}
-                      >
-                        {buildStory(profile, lang)}
-                      </div>
+                      <ShareCard
+                        story={buildStory(profile, lang)}
+                        topProvince={topProvince}
+                        lang={lang}
+                        trait={getTopTrait(profile)}
+                        className={ibmThai.className}
+                      />
                     )}
-
-                    {topProvince && (
-                      <div
-                        style={{
-                          marginTop: 20,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 22,
-                          alignItems: 'center',
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontSize: 20,
-                            opacity: 0.6,
-                            letterSpacing: 1,
-                          }}
-                        >
-                          {lang === 'th'
-                            ? 'จังหวัดที่เหมาะกับคุณที่สุดคือ'
-                            : 'The province that fits you best is'}
-                        </div>
-
-                        <div
-                          style={{
-                            fontSize: 64,
-                            fontWeight: 500,
-                            lineHeight: 1.2,
-                          }}
-                        >
-                          {lang === 'th'
-                            ? topProvince.name_th
-                            : topProvince.name_en}
-                        </div>
-
-                        <div
-                          style={{
-                            fontSize: 16,
-                            letterSpacing: 4,
-                            opacity: 0.45,
-                            marginTop: 6,
-                          }}
-                        >
-                          {lang === 'th' ? 'BEST MATCH' : 'BEST MATCH'}
-                        </div>
-                      </div>
-                    )}
-                    {/* 🔥 BRAND NAME ย้ายมาล่างสุด */}
-                    <div
-                      style={{
-                        fontSize: 22,
-                        letterSpacing: 6,
-                        opacity: 0.7,
-                        marginTop: 220,
-                      }}
-                    >
-
-                      TYPETEAWTHAI
-                    </div>
                   </div>
                 </div>
               </div>

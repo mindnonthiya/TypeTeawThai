@@ -267,17 +267,9 @@ export default function QuizPage() {
             </button>
 
             <button
+              className="primary"
               onClick={nextQuestion}
               disabled={selected === null}
-              style={{
-                padding: "10px 22px",
-                borderRadius: "8px",
-                backgroundColor: "#8C6A4A",
-                color: "white",
-                border: "none",
-                opacity: selected === null ? 0.5 : 1,
-                cursor: "pointer"
-              }}
             >
               {step === questions.length - 1
                 ? (lang === "th" ? "ดูผลลัพธ์" : "View Result")

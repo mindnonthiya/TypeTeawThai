@@ -143,7 +143,6 @@ export default function SelectRegion() {
 
         .subtitle {
           font-size: 11px;
-          letter-spacing: 4px;
           text-transform: uppercase;
           opacity: 0.5;
           margin-bottom: 18px;
@@ -165,7 +164,6 @@ export default function SelectRegion() {
 
         .sectionTitle {
           font-size: 12px;
-          letter-spacing: 3px;
           text-transform: uppercase;
           opacity: 0.5;
           margin-bottom: 24px;

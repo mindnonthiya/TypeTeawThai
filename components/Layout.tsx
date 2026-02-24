@@ -21,10 +21,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <header className="header">
-        <link
-          href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&display=swap"
-          rel="stylesheet"
-        />
         <div className="inner">
 
           <div className="brandBlock">
@@ -258,7 +254,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         .brand {
   font-size: 60px;
   font-weight: 600;
-  letter-spacing: 1px;
+  letter-spacing: 3px;
   text-decoration: none;
   display: flex;
   align-items: center;

@@ -30,6 +30,13 @@ label {
   -webkit-text-fill-color: inherit !important;
 }
 
+button.primary {
+  background: #8C6A4A;
+  border-color: #8C6A4A;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
 button:focus,
 button:active,
 label:focus,
@@ -50,7 +57,7 @@ body {
 }
 
 body {
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  font-family: 'IBM Plex Sans Thai', sans-serif;
   background: var(--bg);
   color: var(--fg);
 }
@@ -58,6 +65,10 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+.brand {
+  font-family: "Playfair Display", serif;
 }
 
 .container {

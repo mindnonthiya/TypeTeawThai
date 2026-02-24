@@ -6,6 +6,7 @@ import Layout from '@/components/Layout'
 import { LanguageProvider } from '@/contexts/LanguageContext'
 import { AuthProvider } from '@/contexts/AuthContext'
 
+
 /**
  * Extend NextPage type to support optional noLayout flag
  */

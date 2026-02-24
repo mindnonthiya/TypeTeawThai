@@ -134,26 +134,16 @@ const Home: NextPageWithLayout = () => {
           margin-top: 30px;
         }
 
-        .startButton {
-          padding: 12px 48px;
-          border-radius: 999px;
-          background-color: #8C6A4A;
-          color: white;
-          border: none;
-          font-size: 14px;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
+        .startButton {width: 260px; /* ความยาวเท่ากันทุกปุ่ม */ border: 1px solid rgba(0,0,0,0.25); background: transparent; padding: 12px 8px; border-radius: 28px; /* วงรีแบบนุ่ม ๆ */ font-size: 15px; cursor: pointer; transition: all 0.25s ease;
+}
 
-        .startButton:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 8px 18px rgba(0,0,0,0.2);
-        }
+.startButton:hover {border-color: black; transform: translateY(-2px); background: rgba(0,0,0,0.03);
+}
 
-        .startButton:active {
-          transform: translateY(0);
-        }
+.startButton:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
 
         .terms {
           font-size: 12px;
