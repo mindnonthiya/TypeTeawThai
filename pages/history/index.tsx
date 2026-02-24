@@ -33,6 +33,12 @@ export default function HistoryListPage() {
     if (!user) return
 
     async function load() {
+      if (!supabase) {
+        setError('Supabase is not configured')
+        setLoading(false)
+        return
+      }
+
       try {
         const { data, error } = await supabase
           .from('quiz_results')
@@ -64,7 +70,7 @@ export default function HistoryListPage() {
 
   return (
     <div className="grid" style={{ gap: 14 }}>
-      
+
       <h1 className="h1">{t('historyTitle')}</h1>
 
       {error && <p style={{ color: 'red' }}>{error}</p>}

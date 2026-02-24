@@ -48,32 +48,31 @@ export function computeProfile(optionScores: OptionScore[]): Profile {
 }
 
 export function provinceMatchScore(profile: Profile, p: ProvinceScores): number {
-  const provinceTotal =
-    (p.nature_score || 0) +
-    (p.cafe_score || 0) +
-    (p.adventure_score || 0) +
-    (p.culture_score || 0) +
-    (p.sea_score || 0);
+  const traits: (keyof Profile)[] = ["nature", "cafe", "adventure", "culture", "sea"]
 
-  if (provinceTotal === 0) return 0;
+  let dot = 0
+  let profileMag = 0
+  let provinceMag = 0
 
-  const normalizedProvince = {
-    nature: (p.nature_score || 0) / provinceTotal,
-    cafe: (p.cafe_score || 0) / provinceTotal,
-    adventure: (p.adventure_score || 0) / provinceTotal,
-    culture: (p.culture_score || 0) / provinceTotal,
-    sea: (p.sea_score || 0) / provinceTotal,
-  };
+  for (const t of traits) {
+    const profileValue = profile[t] || 0
 
-  return (
-    normalizedProvince.nature * profile.nature +
-    normalizedProvince.cafe * profile.cafe +
-    normalizedProvince.adventure * profile.adventure +
-    normalizedProvince.culture * profile.culture +
-    normalizedProvince.sea * profile.sea
-  );
+    // ✅ normalize จังหวัดเป็น 0-1 จาก scale 1-5
+    const provinceValue =
+      (p[`${t}_score` as keyof ProvinceScores] || 0) / 5
+
+    dot += profileValue * provinceValue
+    profileMag += profileValue * profileValue
+    provinceMag += provinceValue * provinceValue
+  }
+
+  profileMag = Math.sqrt(profileMag)
+  provinceMag = Math.sqrt(provinceMag)
+
+  if (profileMag === 0 || provinceMag === 0) return 0
+
+  return dot / (profileMag * provinceMag)
 }
-
 export function topTraits(profile: Profile): Array<keyof Profile> {
   const entries = Object.entries(profile) as Array<[keyof Profile, number]>;
   return entries.sort((a, b) => b[1] - a[1]).map((x) => x[0]);
