@@ -81,9 +81,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     onClick={() => setOpen(false)}
                   >
                     <div className="iconWrap">
-                      <img src="/images/q12.png" className="menuIcon" />
+                      <img src="/images/questionnaire.png" className="menuIcon" />
                     </div>
-                    <span>{lang === "th" ? "แบบทดสอบความพึงพอใจ" : "Satisfaction Survey"}</span>
+                    <span>{lang === "th" ? "แบบสอบถาม" : "Satisfaction Survey"}</span>
                   </a>
 
                   {user && (
