@@ -12,12 +12,18 @@ type Region = {
 
 export default function SelectRegion() {
   const router = useRouter()
-  const { user, isGuest, loading: authLoading } = useAuth()
+  const { user, isGuest, loading: authLoading, continueAsGuest } = useAuth()
   const { lang } = useLang()
 
   const [regions, setRegions] = useState<Region[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!authLoading && !user && !isGuest) {
+      continueAsGuest()
+    }
+  }, [authLoading, user, isGuest, continueAsGuest])
 
   useEffect(() => {
     async function loadRegions() {
