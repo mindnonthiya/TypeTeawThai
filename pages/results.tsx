@@ -166,7 +166,7 @@ export default function ResultsPage() {
   useEffect(() => {
     if (!router.isReady) return
     if (!authLoading && !user && !isGuest) {
-      router.replace('/login')
+      router.replace(`/login?returnTo=${encodeURIComponent(router.asPath)}`)
     }
   }, [authLoading, user, isGuest, router.isReady])
 

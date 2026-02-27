@@ -15,7 +15,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   async function onLogout() {
     await signOut();
     setShowLogin(false);
-    router.replace("/");
   }
 
   return (
