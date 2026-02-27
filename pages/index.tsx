@@ -5,7 +5,7 @@ import type { NextPageWithLayout } from "./_app"
 
 const Home: NextPageWithLayout = () => {
   const router = useRouter()
-  const { loading } = useAuth()
+  const { user, isGuest, continueAsGuest, loading } = useAuth()
   const { t } = useLang()
 
   if (loading) return null
@@ -44,7 +44,10 @@ const Home: NextPageWithLayout = () => {
 
           <div className="buttonSection">
             <button
-              onClick={() => router.push("/region")}
+              onClick={() => {
+                if (!user && !isGuest) continueAsGuest()
+                router.push("/region")
+              }}
               className="startButton"
             >
               {t("start")}
