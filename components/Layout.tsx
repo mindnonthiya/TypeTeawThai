@@ -73,6 +73,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     </Link>
                   )}
 
+                  <a
+                    href="https://forms.gle/opkU1N6gbjVptJkv6"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="menuItem"
+                    onClick={() => setOpen(false)}
+                  >
+                    <div className="iconWrap">
+                      <img src="/images/q12.png" className="menuIcon" />
+                    </div>
+                    <span>{lang === "th" ? "แบบทดสอบความพึงพอใจ" : "Satisfaction Survey"}</span>
+                  </a>
+
                   {user && (
                     <>
                       <div className="divider" />
