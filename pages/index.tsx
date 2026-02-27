@@ -1,4 +1,3 @@
-import { useEffect } from "react"
 import { useRouter } from "next/router"
 import { useAuth } from "@/contexts/AuthContext"
 import { useLang } from "@/contexts/LanguageContext"
@@ -6,16 +5,10 @@ import type { NextPageWithLayout } from "./_app"
 
 const Home: NextPageWithLayout = () => {
   const router = useRouter()
-  const { user, isGuest, loading } = useAuth()
+  const { loading } = useAuth()
   const { t } = useLang()
 
-  useEffect(() => {
-    if (!loading && !user && !isGuest) {
-      router.replace("/login")
-    }
-  }, [user, isGuest, loading, router])
-
-  if (loading || (!user && !isGuest)) return null
+  if (loading) return null
 
   return (
     <>

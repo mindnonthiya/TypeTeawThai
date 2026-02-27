@@ -58,7 +58,7 @@ export default function QuizPage() {
 
   // 🔐 redirect ถ้าไม่ได้ login และไม่ได้เข้าแบบ guest
   useEffect(() => {
-    if (!authLoading && !user && !isGuest) router.replace('/login')
+    if (!authLoading && !user && !isGuest) router.replace(`/login?returnTo=${encodeURIComponent(router.asPath)}`)
   }, [authLoading, user, isGuest, router])
 
   // 📦 โหลดคำถามจาก Supabase
