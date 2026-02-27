@@ -23,7 +23,7 @@ export default function HistoryListPage() {
   // 🔥 redirect logic อยู่ใน effect เสมอ
   useEffect(() => {
     if (!authLoading && !user) {
-      router.replace('/login')
+      router.replace(`/login?returnTo=${encodeURIComponent(router.asPath)}`)
     }
   }, [authLoading, user, router])
 

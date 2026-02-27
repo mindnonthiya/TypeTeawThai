@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useRouter } from "next/router"
 import { useAuth } from "@/contexts/AuthContext"
 import { useLang } from "@/contexts/LanguageContext"
@@ -18,6 +18,11 @@ export default function LoginModal({ onClose }: Props) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const returnTo = useMemo(() => {
+    const raw = router.query.returnTo
+    return typeof raw === "string" && raw.startsWith("/") ? raw : "/"
+  }, [router.query.returnTo])
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setBusy(true)
@@ -30,7 +35,7 @@ export default function LoginModal({ onClose }: Props) {
         await signUp(email, password)
       }
 
-      router.push("/") // redirect ที่เดียว
+      await router.push(returnTo)
     } catch (e: any) {
       setError(e?.message || "Something went wrong")
     } finally {
@@ -50,7 +55,7 @@ export default function LoginModal({ onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
         onSubmit={handleSubmit}
       >
-        
+
 
         <h1 className="card-title">
           {mode === "login"
