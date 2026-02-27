@@ -124,7 +124,7 @@ export default function ResultsPage() {
   const [items, setItems] = useState<any[]>([])
   const [shareOpen, setShareOpen] = useState(false)
 
-  const hasInserted = useRef(false)
+  const lastSavedPayloadKey = useRef<string | null>(null)
   const shareRef = useRef<HTMLDivElement>(null)
 
 
@@ -148,25 +148,29 @@ export default function ResultsPage() {
 
   const payload = useMemo(() => {
     if (!router.isReady) return null
-    const { regionId, selected, answers } = router.query
 
-    if (!selected || !answers) return null
+    const regionIdParam = typeof router.query.regionId === 'string' ? router.query.regionId : null
+    const selectedParam = typeof router.query.selected === 'string' ? router.query.selected : null
+    const answersParam = typeof router.query.answers === 'string' ? router.query.answers : null
 
-    return {
-      regionId: regionId ? Number(regionId) : null, // 👈 แก้ตรงนี้
-      selectedOptionIds: JSON.parse(selected as string),
-      answers: JSON.parse(answers as string),
+    if (!selectedParam || !answersParam) return null
+
+    try {
+      return {
+        key: `${regionIdParam || ''}|${selectedParam}|${answersParam}`,
+        regionId: regionIdParam ? Number(regionIdParam) : null,
+        selectedOptionIds: JSON.parse(selectedParam),
+        answers: JSON.parse(answersParam),
+      }
+    } catch {
+      return null
     }
-  }, [router.isReady, router.query])
-
-  useEffect(() => {
-    hasInserted.current = false
-  }, [payload])
+  }, [router.isReady, router.query.regionId, router.query.selected, router.query.answers])
 
   useEffect(() => {
     if (!router.isReady) return
     if (!authLoading && !user && !isGuest) {
-      router.replace('/login')
+      router.replace(`/login?returnTo=${encodeURIComponent(router.asPath)}`)
     }
   }, [authLoading, user, isGuest, router.isReady])
 
@@ -248,8 +252,8 @@ export default function ResultsPage() {
 
         setItems(out)
 
-        if (!hasInserted.current && !router.query.saved) {
-          hasInserted.current = true
+        if (lastSavedPayloadKey.current !== payload.key) {
+          lastSavedPayloadKey.current = payload.key
 
           const resultPayload = {
             recommended_provinces: ranked.map((p: any) => ({
@@ -282,15 +286,6 @@ export default function ResultsPage() {
             })
             window.localStorage.setItem(key, JSON.stringify(existing.slice(0, 20)))
           }
-
-          router.replace(
-            {
-              pathname: router.pathname,
-              query: { ...router.query, saved: '1' },
-            },
-            undefined,
-            { shallow: true }
-          )
         }
 
       } catch (err) {
