@@ -61,7 +61,7 @@ export default function SelectRegion() {
   if (authLoading || loading) return null
 
   if (!user && !isGuest) return null
-  
+
   return (
     <>
       <div className="wrapper">
