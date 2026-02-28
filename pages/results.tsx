@@ -148,7 +148,9 @@ export default function ResultsPage() {
 
   const payload = useMemo(() => {
     if (!router.isReady) return null
-    const { regionId, selected, answers } = router.query
+    const regionId = router.query.regionId
+    const selected = router.query.selected
+    const answers = router.query.answers
 
     if (!selected || !answers) return null
 
@@ -157,11 +159,12 @@ export default function ResultsPage() {
       selectedOptionIds: JSON.parse(selected as string),
       answers: JSON.parse(answers as string),
     }
-  }, [router.isReady, router.query])
-
-  useEffect(() => {
-    hasInserted.current = false
-  }, [payload])
+  }, [
+    router.isReady,
+    router.query.regionId,
+    router.query.selected,
+    router.query.answers,
+  ])
 
   useEffect(() => {
     if (!router.isReady) return
