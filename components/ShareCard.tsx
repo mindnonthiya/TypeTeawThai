@@ -58,14 +58,15 @@ export default function ShareCard({
                     alignItems: 'center',
                     textAlign: 'center',
                     maxWidth: 720,
+                    marginTop: 96,
                 }}
             >
                 {/* STORY */}
                 <div
                     style={{
-                        fontSize: 30,
-                        lineHeight: 2,
-                        marginBottom: 70,
+                        fontSize: 28,
+                        lineHeight: 1.9,
+                        marginBottom: 58,
                         letterSpacing: 0.3,
                         whiteSpace: 'pre-line',
                         maxWidth: 620,
@@ -79,9 +80,9 @@ export default function ShareCard({
                     <>
                         <div
                             style={{
-                                fontSize: 18,
+                                fontSize: 17,
                                 opacity: 0.6,
-                                marginBottom: 14,
+                                marginBottom: 12,
                                 letterSpacing: 1,
                             }}
                         >
@@ -92,9 +93,9 @@ export default function ShareCard({
 
                         <div
                             style={{
-                                fontSize: 48,
+                                fontSize: 44,
                                 fontWeight: 600,
-                                marginBottom: 6,
+                                marginBottom: 4,
                                 color: '#d54242',
                             }}
                         >
@@ -107,7 +108,7 @@ export default function ShareCard({
                             style={{
                                 fontSize: 12,
                                 letterSpacing: 3,
-                                marginBottom: 40,
+                                marginBottom: 32,
                             }}
                         >
                             BEST MATCH
@@ -119,8 +120,8 @@ export default function ShareCard({
                                 src={imgSrc}
                                 alt={trait || ''}
                                 style={{
-                                    width: 420,
-                                    marginBottom: 80,
+                                    width: 410,
+                                    marginBottom: 56,
                                 }}
                             />
                         )}
@@ -132,7 +133,7 @@ export default function ShareCard({
                     style={{
                         fontSize: 14,
                         letterSpacing: 4,
-                        marginTop: 70,
+                        marginTop: 44,
                     }}
                 >
                     TYPETEAWTHAI
