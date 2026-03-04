@@ -39,6 +39,7 @@ export default function ShareCard({
         <div
             className={className}
             style={{
+                fontFamily: '"IBM Plex Sans Thai", "Noto Sans Thai", "Sarabun", sans-serif',
                 width: 620,
                 height: 1400,
                 padding: '100px 70px 80px',
