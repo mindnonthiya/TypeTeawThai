@@ -47,6 +47,7 @@ export default function ShareCard({
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
+                justifyContent: 'space-between',
                 color: '#2d2a26',
                 boxSizing: 'border-box',
             }}
@@ -59,7 +60,8 @@ export default function ShareCard({
                     alignItems: 'center',
                     textAlign: 'center',
                     width: '100%',
-                    marginTop: 40,
+                    flex: 1,
+                    justifyContent: 'center',
                 }}
             >
                 {/* STORY */}
@@ -147,7 +149,7 @@ export default function ShareCard({
                     fontSize: 14,
                     letterSpacing: 6,
                     opacity: 0.8,
-                    marginTop: 100,
+                    marginTop: 40,
                 }}
             >
                 TYPETEAWTHAI
