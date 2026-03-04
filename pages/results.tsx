@@ -139,12 +139,6 @@ export default function ResultsPage() {
         pixelRatio: 2,
         cacheBust: true,
         backgroundColor: '#f4efe8',
-        fontEmbedCSS: `
-    @font-face {
-      font-family: "IBM Plex Sans Thai";
-      src: url("/_next/static/media/....woff2") format("woff2");
-    }
-  `,
       })
 
       const link = document.createElement('a')
@@ -169,11 +163,11 @@ export default function ResultsPage() {
       selectedOptionIds: JSON.parse(selected as string),
       answers: JSON.parse(answers as string),
     }
-  }, [router.isReady, router.query])
+  }, [router.isReady, router.query.regionId, router.query.selected, router.query.answers])
 
   useEffect(() => {
     hasInserted.current = false
-  }, [payload])
+  }, [router.query.regionId, router.query.selected, router.query.answers])
 
   useEffect(() => {
     if (!router.isReady) return

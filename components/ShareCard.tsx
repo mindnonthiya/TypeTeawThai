@@ -37,15 +37,17 @@ export default function ShareCard({
 
     return (
         <div
+            className={className}
             style={{
-                fontFamily: '"IBM Plex Sans Thai", sans-serif', // 🔥 เพิ่มบรรทัดนี้
+                fontFamily: '"IBM Plex Sans Thai", "Noto Sans Thai", "Sarabun", sans-serif',
                 width: 620,
-                height: 1100,
+                height: 1400,
                 padding: '100px 70px 80px',
                 background: '#f4efe8',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
+                justifyContent: 'space-between',
                 color: '#2d2a26',
                 boxSizing: 'border-box',
             }}
@@ -58,7 +60,8 @@ export default function ShareCard({
                     alignItems: 'center',
                     textAlign: 'center',
                     width: '100%',
-                    marginTop: 40,
+                    flex: 1,
+                    justifyContent: 'center',
                 }}
             >
                 {/* STORY */}
@@ -146,7 +149,7 @@ export default function ShareCard({
                     fontSize: 14,
                     letterSpacing: 6,
                     opacity: 0.8,
-                    marginTop: 100,
+                    marginTop: 40,
                 }}
             >
                 TYPETEAWTHAI
