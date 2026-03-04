@@ -15,8 +15,7 @@ type Props = {
     }
     lang: string
     trait?: ProfileTrait | null
-    className?: string   // 👈 เพิ่มอันนี้
-
+    className?: string
 }
 
 export default function ShareCard({
@@ -24,8 +23,7 @@ export default function ShareCard({
     topProvince,
     lang,
     trait,
-    className,  // 👈 รับเพิ่ม
-
+    className,
 }: Props) {
     const imageMap: Record<ProfileTrait, string> = {
         nature: '/images/nature.png',
@@ -39,50 +37,60 @@ export default function ShareCard({
 
     return (
         <div
-            className={className}
             style={{
+                fontFamily: '"IBM Plex Sans Thai", sans-serif', // 🔥 เพิ่มบรรทัดนี้
                 width: 620,
-                height: 1400,
-                padding: 120,
+                height: 1100,
+                padding: '100px 70px 80px',
                 background: '#f4efe8',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'center',
                 color: '#2d2a26',
+                boxSizing: 'border-box',
             }}
         >
+            {/* CONTENT BLOCK */}
             <div
                 style={{
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     textAlign: 'center',
-                    maxWidth: 720,
+                    width: '100%',
+                    marginTop: 40,
                 }}
             >
                 {/* STORY */}
                 <div
                     style={{
-                        fontSize: 30,
-                        lineHeight: 2,
-                        marginBottom: 70,
-                        letterSpacing: 0.3,
+                        fontSize: 26,          // 🔥 เล็กลงชัดเจน
+                        lineHeight: 1.8,       // 🔥 ชิดขึ้น
+                        marginBottom: 100,      // 🔥 ลดช่องว่างก่อน province
+                        letterSpacing: 0.2,
                         whiteSpace: 'pre-line',
-                        maxWidth: 620,
+                        maxWidth: 560,
                     }}
                 >
                     {story}
                 </div>
 
-                {/* BEST MATCH */}
+                {/* PROVINCE SECTION (fixed layout) */}
                 {topProvince && (
-                    <>
+                    <div
+                        style={{
+                            position: 'relative',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            marginBottom: 70,
+                        }}
+                    >
                         <div
                             style={{
-                                fontSize: 18,
-                                opacity: 0.6,
-                                marginBottom: 14,
-                                letterSpacing: 1,
+                                fontSize: 16,
+                                color: '#8c857c',
+                                marginBottom: 12,
                             }}
                         >
                             {lang === 'th'
@@ -92,10 +100,12 @@ export default function ShareCard({
 
                         <div
                             style={{
-                                fontSize: 48,
+                                fontSize: 58,
                                 fontWeight: 600,
-                                marginBottom: 6,
-                                color: '#d54242',
+                                color: '#dc5e5e',
+                                maxWidth: 560,
+                                lineHeight: 1.15,
+                                textAlign: 'center',
                             }}
                         >
                             {lang === 'th'
@@ -103,40 +113,43 @@ export default function ShareCard({
                                 : topProvince.name_en}
                         </div>
 
+                        {/* BEST MATCH overlay แบบคุมตำแหน่งเอง */}
                         <div
                             style={{
                                 fontSize: 12,
-                                letterSpacing: 3,
-                                marginBottom: 40,
+                                letterSpacing: 4,
+                                marginTop: 14,   // 🔥 ให้ระยะห่างแทน absolute
                             }}
                         >
                             BEST MATCH
                         </div>
-
-                        {/* TRAIT IMAGE */}
-                        {imgSrc && (
-                            <img
-                                src={imgSrc}
-                                alt={trait || ''}
-                                style={{
-                                    width: 420,
-                                    marginBottom: 80,
-                                }}
-                            />
-                        )}
-                    </>
+                    </div>
                 )}
 
-                {/* BRAND */}
-                <div
-                    style={{
-                        fontSize: 14,
-                        letterSpacing: 4,
-                        marginTop: 70,
-                    }}
-                >
-                    TYPETEAWTHAI
-                </div>
+                {/* TRAIT IMAGE */}
+                {imgSrc && (
+                    <img
+                        src={imgSrc}
+                        alt={trait || ''}
+                        style={{
+                            width: 460,
+                            objectFit: 'contain',
+                            marginTop: 10,   // 🔥 คุมระยะใหม่
+                        }}
+                    />
+                )}
+            </div>
+
+            {/* BRAND */}
+            <div
+                style={{
+                    fontSize: 14,
+                    letterSpacing: 6,
+                    opacity: 0.8,
+                    marginTop: 100,
+                }}
+            >
+                TYPETEAWTHAI
             </div>
         </div>
     )

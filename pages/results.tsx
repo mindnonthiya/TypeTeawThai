@@ -131,18 +131,30 @@ export default function ResultsPage() {
   async function downloadImage() {
     if (!shareRef.current) return
 
-    await document.fonts.ready
-    await new Promise(res => setTimeout(res, 100))
+    try {
+      await document.fonts.ready
+      await new Promise((res) => setTimeout(res, 150))
 
-    const dataUrl = await htmlToImage.toPng(shareRef.current, {
-      pixelRatio: 2,
-      cacheBust: true,
-    })
+      const dataUrl = await htmlToImage.toPng(shareRef.current, {
+        pixelRatio: 2,
+        cacheBust: true,
+        backgroundColor: '#f4efe8',
+        fontEmbedCSS: `
+    @font-face {
+      font-family: "IBM Plex Sans Thai";
+      src: url("/_next/static/media/....woff2") format("woff2");
+    }
+  `,
+      })
 
-    const link = document.createElement('a')
-    link.download = 'travel-result.png'
-    link.href = dataUrl
-    link.click()
+      const link = document.createElement('a')
+      link.download = 'travel-result.png'
+      link.href = dataUrl
+      link.click()
+
+    } catch (err) {
+      console.error('Export failed:', err)
+    }
   }
 
 
@@ -153,7 +165,7 @@ export default function ResultsPage() {
     if (!selected || !answers) return null
 
     return {
-      regionId: regionId ? Number(regionId) : null, // 👈 แก้ตรงนี้
+      regionId: regionId ? Number(regionId) : null,
       selectedOptionIds: JSON.parse(selected as string),
       answers: JSON.parse(answers as string),
     }
@@ -178,7 +190,7 @@ export default function ResultsPage() {
         return
       }
 
-      setLoading(true)   // ✅ เริ่มโหลดตรงนี้
+      setLoading(true)
 
       try {
         const { data: oData, error: oErr } = await supabase
@@ -219,7 +231,6 @@ export default function ResultsPage() {
             const diff = b.matchScore - a.matchScore
             if (diff !== 0) return diff
 
-            // แทนที่ random ด้วย id
             return a.id - b.id
           })
 
@@ -525,11 +536,9 @@ export default function ResultsPage() {
                 {/* 🔥 HIDDEN SHARE CARD (for export only) */}
                 <div
                   style={{
-                    position: 'absolute',
-                    opacity: 0,
-                    pointerEvents: 'none',
-                    top: -9999,
-                    left: -9999,
+                    position: 'fixed',
+                    top: '-9999px',
+                    left: '-9999px',
                   }}
                 >
                   <div ref={shareRef}>

@@ -57,7 +57,7 @@ body {
 }
 
 body {
-  font-family: 'IBM Plex Sans Thai', sans-serif;
+  
   background: var(--bg);
   color: var(--fg);
 }

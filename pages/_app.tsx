@@ -1,15 +1,24 @@
 import '@/styles/globals.css'
 import type { AppProps } from 'next/app'
 import type { NextPage } from 'next'
-import type { ReactElement, ReactNode } from 'react'
+import { IBM_Plex_Sans_Thai, Playfair_Display } from 'next/font/google'
 import Layout from '@/components/Layout'
 import { LanguageProvider } from '@/contexts/LanguageContext'
 import { AuthProvider } from '@/contexts/AuthContext'
 
+const ibmThai = IBM_Plex_Sans_Thai({
+  subsets: ['thai'],
+  weight: ['300', '400', '500', '600', '700'],
+  display: 'swap',
+})
 
-/**
- * Extend NextPage type to support optional noLayout flag
- */
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['400', '600', '700'],
+  display: 'swap',
+  variable: '--font-playfair', // 👈 ต้องเพิ่มอันนี้
+})
+
 export type NextPageWithLayout = NextPage & {
   noLayout?: boolean
 }
@@ -22,13 +31,15 @@ export default function App({ Component, pageProps }: AppPropsWithLayout) {
   return (
     <LanguageProvider>
       <AuthProvider>
-        {Component.noLayout ? (
-          <Component {...pageProps} />
-        ) : (
-          <Layout>
+        <div className={`${ibmThai.className} ${playfair.variable}`}>
+          {Component.noLayout ? (
             <Component {...pageProps} />
-          </Layout>
-        )}
+          ) : (
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>
+          )}
+        </div>
       </AuthProvider>
     </LanguageProvider>
   )
