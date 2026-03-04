@@ -37,10 +37,10 @@ export default function ShareCard({
 
     return (
         <div
+            className={className}
             style={{
-                fontFamily: '"IBM Plex Sans Thai", sans-serif', // 🔥 เพิ่มบรรทัดนี้
                 width: 620,
-                height: 1100,
+                height: 1400,
                 padding: '100px 70px 80px',
                 background: '#f4efe8',
                 display: 'flex',
